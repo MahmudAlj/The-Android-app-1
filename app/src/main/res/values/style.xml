@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="rounded_button">
+        <item name="android:background">@drawable/rounded_button_background</item>
+        <item name="android:textColor">@android:color/holo_green_dark</item>
+        <item name="android:textSize">16sp</item>
+        <!-- Diğer düğme özellikleri -->
+    </style>
+
+
+</resources>
+
