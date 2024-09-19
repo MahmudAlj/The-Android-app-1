@@ -30,6 +30,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Veritabanı sürümü değiştiğinde burada güncelleme işlemleri yapılabilir.
+        db.execSQL("DROP TABLE IF EXISTS Jobs")
+        db.execSQL("DROP TABLE IF EXISTS Employers")
+
+        // Yeni tabloyu tekrar oluştur
+        onCreate(db)
     }
 }
