@@ -24,6 +24,8 @@ import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.widget.Toast
+import androidx.room.util.query
 
 //silinen employer lar historıye gitmiyo
 //ikinci employer eklendıgınde eklenen ıs bırıncı employera gıdıyo
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var linearLayout: LinearLayout // UI da isveren ve isleri gostermek ıcın kullanılır
     private lateinit var db: SQLiteDatabase // verı tabanı baglantısı
     private lateinit var historyButton: Button
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +61,29 @@ class MainActivity : AppCompatActivity() {
         val dbHelper = DatabaseHelper(this)
         db = dbHelper.writableDatabase
 
+        loadEmployersFromDatabase() // İşverenleri yükle
         // İşverenleri görüntüleme işlemi
         displayEmployers()
+    }
+
+    //Veritabanından işverenleri çekmek
+    private fun loadEmployersFromDatabase() {
+        val cursor = db.query("Employers", null, null, null, null, null, null)
+        employers.clear() // Önce işveren listesini temizle
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
+
+                // İşverenin işlerini çekmek için:
+                val jobs = loadJobsForEmployer(id)
+
+                val employer = Employer(id, name, jobs, dateAdded)
+                employers.add(employer)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
     }
 
     // add employer basıldıgndda cıkan pencere işlemi
@@ -196,8 +220,9 @@ class MainActivity : AppCompatActivity() {
 
         builder.setPositiveButton("Add") { dialog, _ ->
             val job = editTextJob.text.toString()
-            val moneyhowmuch = editTextMoney.text.toString().toIntOrNull() ?: 0
+            val moneyhowmuch = editTextMoney.text.toString().toDoubleOrNull() ?: 0.0
             val description = editTextDescription.text.toString() // asılklama degırı
+
 
             // İş ilanını işverenin altına ekleyin ve veritabanına ekleyin
             addJobToDatabase(employer.id, job, moneyhowmuch, description)
@@ -291,36 +316,40 @@ class MainActivity : AppCompatActivity() {
 
         builder.setPositiveButton("Delete") { dialog, _ ->
             // İşvereni ve ilişkili işleri sil
-            employer.isDeleted = true
-
             val employerId = employer.id
-            deleteEmployerFromDatabase(employerId)
+            val deletedRows = deleteEmployerFromDatabase(employerId)
 
-            // İşvereni listeden kaldır
-             employers.remove(employer)
-            // İşverenleri ve işleri yeniden görüntüle
-            displayEmployers()
+            if (deletedRows > 0) {
+                employers.remove(employer)
+                displayEmployers()
+                Toast.makeText(this, "Employer deleted successfully", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to delete employer", Toast.LENGTH_SHORT).show()
+            }
             dialog.dismiss()
         }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.dismiss()
-        }
+        builder.setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
         val dialog = builder.create()
         dialog.show()
     }
 
+
+
+
     // İşlerin veritabanından silme işlemi
     private fun deleteJobFromDatabase(jobId: Long) {
-        // Veritabanından işi sil
-        db.delete("Jobs", "id = ?", arrayOf(jobId.toString()))
+        val rowsDeleted = db.delete("Jobs", "id = ?", arrayOf(jobId.toString()))
+        if (rowsDeleted > 0) {
+            Toast.makeText(this, "Job deleted successfully", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Failed to delete job", Toast.LENGTH_SHORT).show()
+        }
     }
     // İşvereni ve ilişkili işleri veritabanından silme işlemi
-    private fun deleteEmployerFromDatabase(employerId: Long) {
-        // İşvereni veritabanından sil
-        db.delete("Employers", "id = ?", arrayOf(employerId.toString()))
-
-        // İşverene ait tüm işleri de sil
-        db.delete("Jobs", "employer_id = ?", arrayOf(employerId.toString()))
+    private fun deleteEmployerFromDatabase(employerId: Long): Int {
+        val jobDeleted = db.delete("Jobs", "employer_id = ?", arrayOf(employerId.toString()))
+        val employerDeleted = db.delete("Employers", "id = ?", arrayOf(employerId.toString()))
+        return employerDeleted // Kaç satırın silindiğini döndür
     }
     // Yeni bir işvereni veritabanına ekleme işlemi
     private fun addEmployerToDatabase(name: String): Long {
@@ -329,10 +358,17 @@ class MainActivity : AppCompatActivity() {
             put("name", name)
             put("dateAdded", date)
         }
-        return db.insert("Employers", null, employerValues)
+        val newId = db.insert("Employers", null, employerValues)
+        if (newId == -1L) {
+            Toast.makeText(this, "Failed to add employer", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Employer added successfully", Toast.LENGTH_SHORT).show()
+        }
+        return newId
+       // return db.insert("Employers", null, employerValues)
     }
-    // Yeni bir işleri veritabanına eklemek için işlem
-    private fun addJobToDatabase(employerId: Long, name: String, moneyhowmuch: Int, description: String) {
+    // Yeni bir işi veritabanına eklemek için işlem
+    private fun addJobToDatabase(employerId: Long, name: String, moneyhowmuch: Double, description: String) {
         val date = getCurrentDate() // Tarih bilgisini alın
         val jobValues = ContentValues().apply {
             put("employer_id", employerId)
@@ -344,18 +380,24 @@ class MainActivity : AppCompatActivity() {
         val jobId = db.insert("Jobs", null, jobValues)
 
         // Veritabanına iş başarıyla eklendi. Şimdi işverenin iş listesine yeni işi ekleyin.
-        val employer = employers.find { it.id == employerId }
-        if (employer != null) {
-            val newJob = Job(jobId, employerId, name, moneyhowmuch.toString(), description, date)
-            employer.jobs.add(newJob)
+        if (jobId != -1L) {
+            val employer = employers.find { it.id == employerId }
+            if (employer != null) {
+                val newJob = Job(jobId, employerId, name, moneyhowmuch.toString(), description, date)
+                employer.jobs.add(newJob)
+            }
+            Toast.makeText(this, "Job added successfully", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Failed to add job", Toast.LENGTH_SHORT).show()
         }
+
         // İşverenleri güncelle
         displayEmployers()
     }
 
     // Geçerli tarihi almak için işlem
     private fun getCurrentDate(): String {
-        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
         val date = Date()
         return dateFormat.format(date)
     }
@@ -365,6 +407,45 @@ class MainActivity : AppCompatActivity() {
         db.close()
     }
 }
+
+
+private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
+    val jobs = mutableListOf<Job>()
+    val cursor = db.query("Jobs", null, "employer_id = ?", arrayOf(employerId.toString()), null, null, null)
+    if (cursor.moveToFirst()) {
+        do {
+            val jobId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+            val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+            val moneyhowmuch = cursor.getInt(cursor.getColumnIndexOrThrow("moneyhowmuch")).toString()
+            val description = cursor.getString(cursor.getColumnIndexOrThrow("description"))
+            val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
+
+            val job = Job(jobId, employerId, name, moneyhowmuch, description, dateAdded)
+            jobs.add(job)
+        } while (cursor.moveToNext())
+    }
+    cursor.close()
+    return jobs
+}
+//Uygulama Açılışında Veritabanından Verileri Çekme
+ override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_main)
+
+    // Veritabanı bağlantısını oluştur
+    val dbHelper = DatabaseHelper(this)
+    db = dbHelper.writableDatabase
+
+    // Veritabanından işverenleri ve işlerini yükle
+    loadEmployersFromDatabase()
+// Kullanıcıya bilgi ver
+    Toast.makeText(this, "Employers loaded successfully", Toast.LENGTH_SHORT).show()
+
+    // İşverenleri görüntüleme işlemi
+    displayEmployers()
+}
+
+
 
 // İşveren sınıfı
 data class Employer(val id: Long, val name: String, val jobs: MutableList<Job>, val dateAdded: String, var isDeleted: Boolean = false)
