@@ -44,6 +44,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Veritabanı bağlantısını oluştur
+        val dbHelper: DatabaseHelper = DatabaseHelper(this)
+        db = dbHelper.writableDatabase
+
         // Gerekli görünümleri tanımla ve başlat
         linearLayout = findViewById(R.id.linearLayout)
         addButton = findViewById(R.id.newButton)
@@ -56,10 +60,6 @@ class MainActivity : AppCompatActivity() {
         historyButton.setOnClickListener {
             displayHistory()  // hıstoryı acmak ıcın penceresını goster
         }
-
-        // Veritabanı bağlantısını oluştur
-        val dbHelper = DatabaseHelper(this)
-        db = dbHelper.writableDatabase
 
         loadEmployersFromDatabase() // İşverenleri yükle
         // İşverenleri görüntüleme işlemi
