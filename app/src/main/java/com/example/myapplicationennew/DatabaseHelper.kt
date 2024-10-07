@@ -14,7 +14,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(
             "CREATE TABLE Employers (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "name TEXT);"
+                    "name TEXT," +
+                    "dateAdded TEXT);"
         )
 
         // İşler tablosunu oluşturun
@@ -23,13 +24,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "employer_id INTEGER," +
                     "name TEXT," +
-                    "moneyhowmuch INTEGER," +
+                    "moneyhowmuch REAL," +  // Küsuratlı para değerleri için REAL tipi
                     "description TEXT," +
-                    "FOREIGN KEY(employer_id) REFERENCES Employers(id));"
+                    "dateAdded TEXT," +     // İşin eklenme tarihi
+                    "FOREIGN KEY(employer_id) REFERENCES Employers(id) ON DELETE CASCADE);"
         )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // Mevcut tabloları sil
         db.execSQL("DROP TABLE IF EXISTS Jobs")
         db.execSQL("DROP TABLE IF EXISTS Employers")
 
