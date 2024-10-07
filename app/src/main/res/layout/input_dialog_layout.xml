@@ -16,7 +16,7 @@
 
     <EditText
         android:id="@+id/TextMoney"
-        android:layout_width="379dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="How Much"
         android:inputType="number" />
