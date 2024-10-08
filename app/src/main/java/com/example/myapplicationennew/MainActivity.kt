@@ -30,7 +30,7 @@ import android.widget.Toast
 import androidx.room.util.query
 
 //silinen employer lar historıye gitmiyo
-//ikinci employer eklendıgınde eklenen ıs bırıncı employera gıdıyo
+
 
 @SuppressLint("StaticFieldLeak")
 private lateinit var addButton: Button
@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         loadEmployersFromDatabase() // İşverenleri yükle
         // İşverenleri görüntüleme işlemi
         displayEmployers()
+
     }
 
     //Veritabanından işverenleri çekmek
@@ -405,9 +406,6 @@ private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
     return jobs
 }
 }
-
-
-
 
 // İşveren sınıfı
 data class Employer(
