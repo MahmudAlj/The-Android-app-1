@@ -30,6 +30,13 @@ import android.widget.Toast
 import androidx.room.util.query
 
 //silinen employer lar historıye gitmiyo
+// calculate buttonu hıstorye gırıce gozukmesın
+//calculate ekle
+// back buttonu en altta yada en ustte bır ok
+//takvim ekleme
+// employerda tarih degil kazanılan toplam para
+//calculate ve takvim yandan kaydırmalı bır pencere olsun
+//
 
 
 @SuppressLint("StaticFieldLeak")
