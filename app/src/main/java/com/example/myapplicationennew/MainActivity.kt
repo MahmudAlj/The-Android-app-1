@@ -1,4 +1,4 @@
-package com.example.myapplicationennew
+
 
 //Bu satırlar, Android uygulamasının temel bileşenlerini içe aktarır ve
 // bir aktivite sınıfı oluşturmak için kullanılır.
@@ -9,6 +9,17 @@ package com.example.myapplicationennew
 // tarih ve saat biçimlemesi için kullanılan sınıfları ve yerel ayarları içe
 // aktarır. Özellikle, "SimpleDateFormat" ile tarih ve saat değerleri
 // biçimlenir ve "Locale" ile belirli bir dil ve bölge ayarı belirtilir.
+
+//silinen employer lar historıye gitmiyo
+// calculate buttonu hıstorye gırıce gozukmesın
+//calculate ekle
+// back buttonu en altta yada en ustte bır ok
+//takvim ekleme
+// employerda tarih degil kazanılan toplam para
+//calculate ve takvim yandan kaydırmalı bır pencere olsun
+//
+package com.example.myapplicationennew
+
 import DatabaseHelper
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -28,16 +39,6 @@ import java.util.Date
 import java.util.Locale
 import android.widget.Toast
 import androidx.room.util.query
-
-//silinen employer lar historıye gitmiyo
-// calculate buttonu hıstorye gırıce gozukmesın
-//calculate ekle
-// back buttonu en altta yada en ustte bır ok
-//takvim ekleme
-// employerda tarih degil kazanılan toplam para
-//calculate ve takvim yandan kaydırmalı bır pencere olsun
-//
-
 
 @SuppressLint("StaticFieldLeak")
 private lateinit var addButton: Button
@@ -127,18 +128,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     // İşverenleri görüntüleme yeri(ana sayfa)
+    // İşveren listesini güncelleyip tarih yerine toplam kazancı gösteriyoruz.
     @SuppressLint("SetTextI18n", "ResourceAsColor")
     private fun displayEmployers() {
-        // Mevcut işverenleri temizle
         linearLayout.removeAllViews()
         for (employer in employers) {
-            // Her işvereni görüntüleme
             val employerLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
             }
 
+            // İşverenin adını ve toplam kazancını gösteren TextView
+            val totalIncome = employer.jobs.sumOf { it.moneyhowmuch } // Toplam kazanç
             val employerTextView = TextView(this).apply {
-                text = "Employer: ${employer.name} - Added on: ${employer.dateAdded}"
+                text = "Employer: ${employer.name} - Total Income: $totalIncome $"
                 setBackgroundResource(android.R.drawable.btn_default)
                 setPadding(16, 16, 16, 16)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f).apply {
@@ -152,7 +154,7 @@ class MainActivity : AppCompatActivity() {
 
             employerLayout.addView(employerTextView)
 
-            // İşveren silme işlemi
+            // İşveren silme butonu
             val deleteEmployerButton = Button(this).apply {
                 text = "-"
                 setBackgroundResource(R.drawable.rounded_button)
@@ -163,7 +165,7 @@ class MainActivity : AppCompatActivity() {
             }
             employerLayout.addView(deleteEmployerButton)
 
-            // Yeni iş ilanı eklemek için düğme
+            // İş ekleme butonu
             val addJobButton = Button(this).apply {
                 text = "+"
                 setBackgroundResource(R.drawable.rounded_button)
@@ -174,11 +176,12 @@ class MainActivity : AppCompatActivity() {
             }
             employerLayout.addView(addJobButton)
 
-            // İşvereni ekranın altına ekleyin
             linearLayout.addView(employerLayout)
         }
     }
 
+
+    // Silinen işverenlerin gösterildiği history ekranı
     @SuppressLint("SetTextI18n")
     private fun displayHistory() {
         linearLayout.removeAllViews()
@@ -194,16 +197,14 @@ class MainActivity : AppCompatActivity() {
         }
         linearLayout.addView(backButton)
 
-        // Sadece silinmiş işverenleri filtrele
         val deletedEmployers = employers.filter { it.isDeleted }
-
         for (employer in deletedEmployers) {
             val employerLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
             }
 
             val employerTextView = TextView(this).apply {
-                text = "Employer: ${employer.name} - Added on: ${employer.dateAdded}"
+                text = "Employer: ${employer.name} - Deleted"
                 setBackgroundResource(android.R.drawable.btn_default)
                 setPadding(16, 16, 16, 16)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f).apply {
@@ -215,6 +216,7 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(employerLayout)
         }
         historyButton.visibility = View.GONE
+        calculateButton.visibility = View.GONE  // Calculate butonunu gizle
     }
 
     private fun showJobInputDialog(employer: Employer) {
