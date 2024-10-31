@@ -216,7 +216,6 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(employerLayout)
         }
         historyButton.visibility = View.GONE
-        calculateButton.visibility = View.GONE  // Calculate butonunu gizle
     }
 
     private fun showJobInputDialog(employer: Employer) {
