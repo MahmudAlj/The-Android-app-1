@@ -17,7 +17,6 @@
 //calculate ve takvim yandan kaydırmalı bır pencere olsun
 
 package com.example.myapplicationennew
-
 import DatabaseHelper
 import android.annotation.SuppressLint
 import android.app.AlertDialog
