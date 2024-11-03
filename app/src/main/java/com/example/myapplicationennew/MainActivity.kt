@@ -1,5 +1,3 @@
-
-
 //Bu satırlar, Android uygulamasının temel bileşenlerini içe aktarır ve
 // bir aktivite sınıfı oluşturmak için kullanılır.
 // Burada "DatabaseHelper" adında bir sınıf veya modül içe aktarılıyor
@@ -17,7 +15,7 @@
 //takvim ekleme
 // employerda tarih degil kazanılan toplam para
 //calculate ve takvim yandan kaydırmalı bır pencere olsun
-//
+
 package com.example.myapplicationennew
 
 import DatabaseHelper
@@ -49,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: SQLiteDatabase // verı tabanı baglantısı
     private lateinit var historyButton: Button
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -74,7 +71,6 @@ class MainActivity : AppCompatActivity() {
         loadEmployersFromDatabase() // İşverenleri yükle
         // İşverenleri görüntüleme işlemi
         displayEmployers()
-
     }
 
     //Veritabanından işverenleri çekmek
@@ -179,7 +175,6 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(employerLayout)
         }
     }
-
 
     // Silinen işverenlerin gösterildiği history ekranı
     @SuppressLint("SetTextI18n")
