@@ -21,6 +21,7 @@ import DatabaseHelper
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.os.Parcel
@@ -70,6 +71,36 @@ class MainActivity : AppCompatActivity() {
         loadEmployersFromDatabase() // İşverenleri yükle
         // İşverenleri görüntüleme işlemi
         displayEmployers()
+    }
+    class CalculatorActivity : AppCompatActivity() {
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.activity_calculator)
+        }
+
+        fun calculate(view: View) {
+            // Temel işlemler: toplama, çıkarma, çarpma, bölme
+            val num1 = findViewById<EditText>(R.id.num1).text.toString().toDoubleOrNull()
+            val num2 = findViewById<EditText>(R.id.num2).text.toString().toDoubleOrNull()
+            val resultTextView = findViewById<TextView>(R.id.resultTextView)
+
+            if (num1 != null && num2 != null) {
+                when (view.id) {
+                    R.id.addButton -> resultTextView.text = "Result: ${num1 + num2}"
+                    R.id.subtractButton -> resultTextView.text = "Result: ${num1 - num2}"
+                    R.id.multiplyButton -> resultTextView.text = "Result: ${num1 * num2}"
+                    R.id.divideButton -> {
+                        if (num2 != 0.0) {
+                            resultTextView.text = "Result: ${num1 / num2}"
+                        } else {
+                            resultTextView.text = "Cannot divide by zero"
+                        }
+                    }
+                }
+            } else {
+                resultTextView.text = "Please enter valid numbers"
+            }
+        }
     }
 
     //Veritabanından işverenleri çekmek
@@ -386,6 +417,10 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         db.close()
+    }
+    fun openCalculator(view: View) {
+        val intent = Intent(this, CalculatorActivity::class.java)
+        startActivity(intent)
     }
 
 
