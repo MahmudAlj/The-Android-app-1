@@ -15,7 +15,9 @@
 //takvim ekleme
 // employerda tarih degil kazanılan toplam para
 //calculate ve takvim yandan kaydırmalı bır pencere olsun
-
+// eklenen işlerdeki uzun basımda detaylarin çikmasi
+//bir işi silerken buttonla değil uzun basımda silinmesi
+// bir iş eklerken direk iş verenin içine girip sağ üstten arti buttonuna basarak eklensin
 package com.example.myapplicationennew
 import DatabaseHelper
 import android.annotation.SuppressLint
@@ -134,7 +136,11 @@ class MainActivity : AppCompatActivity() {
         builder.setView(inputLayout)
 
         builder.setPositiveButton("Add") { dialog, _ ->
-            val name = editTextName.text.toString()
+            val name = editTextName.text.toString().trim()
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Name can't be empty", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
             val employer = employers.find { it.name == name }
             if (employer == null) {
                 // Yeni işvereni veritabanına ekleyin
@@ -285,6 +291,7 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener {
                 displayEmployers()
                 addButton.visibility = View.VISIBLE
+                historyButton.visibility = View.VISIBLE
             }
         }
         linearLayout.addView(backButton)
@@ -339,7 +346,7 @@ class MainActivity : AppCompatActivity() {
             val deletedRows = deleteEmployerFromDatabase(employerId)
 
             if (deletedRows > 0) {
-                employers.remove(employer)
+                employer.isDeleted = true
                 displayEmployers()
                 Toast.makeText(this, "Employer deleted successfully", Toast.LENGTH_SHORT).show()
             } else {
