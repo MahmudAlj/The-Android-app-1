@@ -18,6 +18,8 @@
 // eklenen işlerdeki uzun basımda detaylarin çikmasi
 //bir işi silerken buttonla değil uzun basımda silinmesi
 // bir iş eklerken direk iş verenin içine girip sağ üstten arti buttonuna basarak eklensin
+
+
 package com.example.myapplicationennew
 import DatabaseHelper
 import android.annotation.SuppressLint
