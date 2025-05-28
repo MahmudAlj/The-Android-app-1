@@ -13,7 +13,7 @@
 //calculate ekle
 // back buttonu en altta yada en ustte bır ok
 //takvim ekleme
-// employerda tarih degil kazanılan toplam para
+// employerda tarih ve kazanılan toplam para
 //calculate ve takvim yandan kaydırmalı bır pencere olsun
 // eklenen işlerdeki uzun basımda detaylarin çikmasi
 //bir işi silerken buttonla değil uzun basımda silinmesi
