@@ -18,6 +18,10 @@
 // eklenen işlerdeki uzun basımda detaylarin çikmasi
 //bir işi silerken buttonla değil uzun basımda silinmesi
 // bir iş eklerken direk iş verenin içine girip sağ üstten arti buttonuna basarak eklensin
+// silme ekleme tuşlari kaldirip direk iş verenin içinde olucak
+// Mahmud
+//yeni eklemeler jeneksmvksmkldmvsrmjkdgreksfmkwlkvdsc
+// yeni ekleme
 package com.example.myapplicationennew
 import DatabaseHelper
 import android.annotation.SuppressLint
