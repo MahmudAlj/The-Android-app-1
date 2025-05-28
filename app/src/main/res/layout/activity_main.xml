@@ -16,10 +16,11 @@
 
         <Button
             android:id="@+id/historyButton"
-            android:layout_width="17dp"
+            android:layout_width="0dp"
             android:layout_height="58dp"
             android:layout_weight="1"
             android:text="History" />
+
 
         <Button
             android:id="@+id/openCalculatorButton"
@@ -33,7 +34,7 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="700dp"
+        android:layout_height="0dp"
         android:layout_weight="1">
 
         <LinearLayout
