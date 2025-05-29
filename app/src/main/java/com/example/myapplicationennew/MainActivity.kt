@@ -18,12 +18,13 @@
 // eklenen işlerdeki uzun basımda detaylarin çikmasi
 //bir işi silerken buttonla değil uzun basımda silinmesi
 // bir iş eklerken direk iş verenin içine girip sağ üstten arti buttonuna basarak eklensin
-
 // silme ekleme tuşlari kaldirip direk iş verenin içinde olucak
-// Mahmud
-//yeni eklemeler jeneksmvksmkldmvsrmjkdgreksfmkwlkvdsc
-// yeni ekleme
 
+
+
+// calculate silincek yana bir sekme açilip orda olucak
+// takvim eklenicek ve yana bir sekme açilip orda olucak
+//
 
 
 package com.example.myapplicationennew
@@ -413,12 +414,13 @@ class MainActivity : AppCompatActivity() {
             if (employer != null) {
                 val newJob = Job(jobId, employerId, name, moneyhowmuch.toDouble(), description, date)
                 employer.jobs.add(newJob)
+                employer.jobs.clear()
+                employer.jobs.addAll(loadJobsForEmployer(employer.id))
             }
             Toast.makeText(this, "Job added successfully", Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, "Failed to add job", Toast.LENGTH_SHORT).show()
         }
-
         // İşverenleri güncelle
         displayEmployers()
     }
