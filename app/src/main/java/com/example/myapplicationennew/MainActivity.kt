@@ -1,33 +1,5 @@
-//Bu satırlar, Android uygulamasının temel bileşenlerini içe aktarır ve
-// bir aktivite sınıfı oluşturmak için kullanılır.
-// Burada "DatabaseHelper" adında bir sınıf veya modül içe aktarılıyor
-// farklı Android bileşenlerini içe aktarırlar. Örneğin, düğme (Button),
-// diyaloglar (AlertDialog), veritabanı işlemleri için kullanılan sınıflar
-// (ContentValues, SQLiteDatabase), günlükleme (Log) ve daha fazlasını içerirler.
-// tarih ve saat biçimlemesi için kullanılan sınıfları ve yerel ayarları içe
-// aktarır. Özellikle, "SimpleDateFormat" ile tarih ve saat değerleri
-// biçimlenir ve "Locale" ile belirli bir dil ve bölge ayarı belirtilir.
-
-//silinen employer lar historıye gitmiyo
-// calculate buttonu hıstorye gırıce gozukmesın
-//calculate ekle
-// back buttonu en altta yada en ustte bır ok
-//takvim ekleme
-// employerda tarih ve kazanılan toplam para
-//calculate ve takvim yandan kaydırmalı bır pencere olsun
-// eklenen işlerdeki uzun basımda detaylarin çikmasi
-//bir işi silerken buttonla değil uzun basımda silinmesi
-// bir iş eklerken direk iş verenin içine girip sağ üstten arti buttonuna basarak eklensin
-// silme ekleme tuşlari kaldirip direk iş verenin içinde olucak
-
-
-
-// calculate silincek yana bir sekme açilip orda olucak
-// takvim eklenicek ve yana bir sekme açilip orda olucak
-//
-
-
 package com.example.myapplicationennew
+
 import DatabaseHelper
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -35,106 +7,73 @@ import android.content.ContentValues
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
+import android.view.Gravity
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.example.myapplicationennew.R
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import android.widget.Toast
-import androidx.room.util.query
-
-@SuppressLint("StaticFieldLeak")
-private lateinit var addButton: Button
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private val employers = mutableListOf<Employer>() //işveren listesi
-    private lateinit var linearLayout: LinearLayout // UI da isveren ve isleri gostermek ıcın kullanılır
-    private lateinit var db: SQLiteDatabase // verı tabanı baglantısı
-    private lateinit var historyButton: Button
+    private val employers = mutableListOf<Employer>()
+    private lateinit var linearLayout: LinearLayout
+    private lateinit var db: SQLiteDatabase
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var menuButton: ImageButton
+    private lateinit var menuAddEmployer: Button
+    private lateinit var menuAddJob: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Veritabanı bağlantısını oluştur
-        val dbHelper: DatabaseHelper = DatabaseHelper(this)
+        val dbHelper = DatabaseHelper(this)
         db = dbHelper.writableDatabase
 
-        // Gerekli görünümleri tanımla ve başlat
         linearLayout = findViewById(R.id.linearLayout)
-        addButton = findViewById(R.id.newButton)
-        "Add Employer".also { addButton.text = it }
-        addButton.setOnClickListener {
-            showInputDialog() // İşveren eklemek için diyalog penceresini göster
-        }
-        historyButton = findViewById(R.id.historyButton)
-        "History".also { historyButton.text = it }
-        historyButton.setOnClickListener {
-            displayHistory()  // hıstoryı acmak ıcın penceresını goster
+        drawerLayout = findViewById(R.id.drawerLayout)
+        menuButton = findViewById(R.id.menuButton)
+        menuAddEmployer = findViewById(R.id.menuAddEmployer)
+        menuAddJob = findViewById(R.id.menuAddJob)
+
+        menuButton.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.END)
         }
 
-        loadEmployersFromDatabase() // İşverenleri yükle
-        // İşverenleri görüntüleme işlemi
+        menuAddEmployer.setOnClickListener {
+            showInputDialog()
+            drawerLayout.closeDrawer(GravityCompat.END)
+        }
+
+        menuAddJob.setOnClickListener {
+            Toast.makeText(this, "Please select an employer first.", Toast.LENGTH_SHORT).show()
+            drawerLayout.closeDrawer(GravityCompat.END)
+        }
+
+        loadEmployersFromDatabase()
         displayEmployers()
     }
-    class CalculatorActivity : AppCompatActivity() {
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-            setContentView(R.layout.activity_calculator)
-        }
 
-        fun calculate(view: View) {
-            // Temel işlemler: toplama, çıkarma, çarpma, bölme
-            val num1 = findViewById<EditText>(R.id.num1).text.toString().toDoubleOrNull()
-            val num2 = findViewById<EditText>(R.id.num2).text.toString().toDoubleOrNull()
-            val resultTextView = findViewById<TextView>(R.id.resultTextView)
-
-            if (num1 != null && num2 != null) {
-                when (view.id) {
-                    R.id.addButton -> resultTextView.text = "Result: ${num1 + num2}"
-                    R.id.subtractButton -> resultTextView.text = "Result: ${num1 - num2}"
-                    R.id.multiplyButton -> resultTextView.text = "Result: ${num1 * num2}"
-                    R.id.divideButton -> {
-                        if (num2 != 0.0) {
-                            resultTextView.text = "Result: ${num1 / num2}"
-                        } else {
-                            resultTextView.text = "Cannot divide by zero"
-                        }
-                    }
-                }
-            } else {
-                resultTextView.text = "Please enter valid numbers"
-            }
-        }
-    }
-
-    //Veritabanından işverenleri çekmek
     private fun loadEmployersFromDatabase() {
         val cursor = db.query("Employers", null, null, null, null, null, null)
-        employers.clear() // Önce işveren listesini temizle
+        employers.clear()
         if (cursor.moveToFirst()) {
             do {
                 val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
                 val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
                 val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
-
-                // İşverenin işlerini çekmek için:
+                val isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow("isDeleted")) == 1
                 val jobs = loadJobsForEmployer(id)
-
-                val employer = Employer(id, name, jobs, dateAdded)
+                val employer = Employer(id, name, jobs, dateAdded, isDeleted)
                 employers.add(employer)
             } while (cursor.moveToNext())
         }
         cursor.close()
     }
 
-    // add employer basıldıgndda cıkan pencere işlemi
     private fun showInputDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Add New Employer")
@@ -152,34 +91,26 @@ class MainActivity : AppCompatActivity() {
             }
             val employer = employers.find { it.name == name }
             if (employer == null) {
-                // Yeni işvereni veritabanına ekleyin
                 val newEmployerId = addEmployerToDatabase(name)
                 val newEmployer = Employer(newEmployerId, name, mutableListOf(), getCurrentDate())
                 employers.add(newEmployer)
-                // İşverenleri güncelle
                 displayEmployers()
             }
             dialog.dismiss()
         }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val dialog = builder.create()
-        dialog.show()
+        builder.setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+        builder.create().show()
     }
 
-    // İşverenleri görüntüleme yeri(ana sayfa)
-    // İşveren listesini güncelleyip tarih yerine toplam kazancı gösteriyoruz.
-    @SuppressLint("SetTextI18n", "ResourceAsColor")
+    @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
-        for (employer in employers) {
+        for (employer in employers.filter { !it.isDeleted }) {
             val employerLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
             }
 
-            // İşverenin adını ve toplam kazancını gösteren TextView
-            val totalIncome = employer.jobs.sumOf { it.moneyhowmuch } // Toplam kazanç
+            val totalIncome = employer.jobs.sumOf { it.moneyhowmuch }
             val employerTextView = TextView(this).apply {
                 text = "Employer: ${employer.name} - Total Income: $totalIncome $"
                 setBackgroundResource(android.R.drawable.btn_default)
@@ -189,13 +120,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 setOnClickListener {
                     displayJobs(employer)
-                    addButton.visibility = View.GONE
                 }
             }
 
             employerLayout.addView(employerTextView)
 
-            // İşveren silme butonu
             val deleteEmployerButton = Button(this).apply {
                 text = "-"
                 setBackgroundResource(R.drawable.rounded_button)
@@ -206,7 +135,6 @@ class MainActivity : AppCompatActivity() {
             }
             employerLayout.addView(deleteEmployerButton)
 
-            // İş ekleme butonu
             val addJobButton = Button(this).apply {
                 text = "+"
                 setBackgroundResource(R.drawable.rounded_button)
@@ -219,43 +147,6 @@ class MainActivity : AppCompatActivity() {
 
             linearLayout.addView(employerLayout)
         }
-    }
-
-    // Silinen işverenlerin gösterildiği history ekranı
-    @SuppressLint("SetTextI18n")
-    private fun displayHistory() {
-        linearLayout.removeAllViews()
-
-        val backButton = Button(this).apply {
-            text = "Back"
-            setBackgroundResource(android.R.drawable.btn_default)
-            setOnClickListener {
-                displayEmployers()
-                addButton.visibility = View.VISIBLE
-                historyButton.visibility = View.VISIBLE
-            }
-        }
-        linearLayout.addView(backButton)
-
-        val deletedEmployers = employers.filter { it.isDeleted }
-        for (employer in deletedEmployers) {
-            val employerLayout = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-            }
-
-            val employerTextView = TextView(this).apply {
-                text = "Employer: ${employer.name} - Deleted"
-                setBackgroundResource(android.R.drawable.btn_default)
-                setPadding(16, 16, 16, 16)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f).apply {
-                    setMargins(14, 14, 14, 14)
-                }
-            }
-            employerLayout.addView(employerTextView)
-
-            linearLayout.addView(employerLayout)
-        }
-        historyButton.visibility = View.GONE
     }
 
     private fun showJobInputDialog(employer: Employer) {
@@ -274,16 +165,8 @@ class MainActivity : AppCompatActivity() {
             val moneyhowmuch = editTextMoney.text.toString().toDoubleOrNull() ?: 0.0
             val description = editTextDescription.text.toString()
 
-            // İş ilanını işverenin altına ekleyin ve veritabanına ekleyin
             addJobToDatabase(employer.id, job, moneyhowmuch, description)
-
-            // Yeni iş ilanını ekledikten sonra işverenin iş ilanlarını görüntüleyin
             displayJobs(employer)
-
-            editTextJob.text.clear()
-            editTextMoney.text.clear()
-            editTextDescription.text.clear()
-
             dialog.dismiss()
         }
         builder.setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
@@ -299,31 +182,27 @@ class MainActivity : AppCompatActivity() {
             setBackgroundResource(android.R.drawable.btn_default)
             setOnClickListener {
                 displayEmployers()
-                addButton.visibility = View.VISIBLE
-                historyButton.visibility = View.VISIBLE
             }
         }
         linearLayout.addView(backButton)
 
         for (job in employer.jobs) {
-            val jobTextView = TextView(this).apply {
-                val jobDetails = "Work: ${job.name}\nAmount: ${job.moneyhowmuch} $\nDescription: ${job.description}"
-                text = jobDetails
+            val jobView = TextView(this).apply {
+                text = "Work: ${job.name}\nAmount: ${job.moneyhowmuch} $\nDescription: ${job.description}"
                 setBackgroundResource(R.drawable.rounded_button)
                 setPadding(16, 16, 16, 16)
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
                     setMargins(16, 16, 16, 16)
                 }
-            }
-            linearLayout.addView(jobTextView)
-
-            val deleteJobButton = Button(this).apply {
-                text = "Delete Job"
-                setOnClickListener {
+                setOnLongClickListener {
                     deleteJob(job)
+                    true
                 }
             }
-            linearLayout.addView(deleteJobButton)
+            linearLayout.addView(jobView)
         }
     }
 
@@ -334,11 +213,9 @@ class MainActivity : AppCompatActivity() {
 
         builder.setPositiveButton("Delete") { dialog, _ ->
             deleteJobFromDatabase(job.id)
-
             val employer = employers.find { it.id == job.employerId }
             employer?.jobs?.remove(job)
             employer?.let { displayJobs(it) }
-
             dialog.dismiss()
         }
         builder.setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
@@ -377,9 +254,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun deleteEmployerFromDatabase(employerId: Long): Int {
-        val jobDeleted = db.delete("Jobs", "employer_id = ?", arrayOf(employerId.toString()))
-        val employerDeleted = db.delete("Employers", "id = ?", arrayOf(employerId.toString()))
-        return employerDeleted // Kaç satırın silindiğini döndür
+        val contentValues = ContentValues().apply {
+            put("isDeleted", 1)
+        }
+        return db.update("Employers", contentValues, "id = ?", arrayOf(employerId.toString()))
     }
 
     private fun addEmployerToDatabase(name: String): Long {
@@ -387,13 +265,12 @@ class MainActivity : AppCompatActivity() {
         val employerValues = ContentValues().apply {
             put("name", name)
             put("dateAdded", date)
+            put("isDeleted", 0)
         }
         val newId = db.insert("Employers", null, employerValues)
-        if (newId == -1L) {
-            Toast.makeText(this, "Failed to add employer", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Employer added successfully", Toast.LENGTH_SHORT).show()
-        }
+        Toast.makeText(this,
+            if (newId == -1L) "Failed to add employer" else "Employer added successfully",
+            Toast.LENGTH_SHORT).show()
         return newId
     }
 
@@ -408,12 +285,9 @@ class MainActivity : AppCompatActivity() {
         }
         val jobId = db.insert("Jobs", null, jobValues)
 
-        // Veritabanına iş başarıyla eklendi. Şimdi işverenin iş listesine yeni işi ekleyin.
         if (jobId != -1L) {
             val employer = employers.find { it.id == employerId }
             if (employer != null) {
-                val newJob = Job(jobId, employerId, name, moneyhowmuch.toDouble(), description, date)
-                employer.jobs.add(newJob)
                 employer.jobs.clear()
                 employer.jobs.addAll(loadJobsForEmployer(employer.id))
             }
@@ -421,47 +295,43 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Failed to add job", Toast.LENGTH_SHORT).show()
         }
-        // İşverenleri güncelle
         displayEmployers()
     }
 
     private fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-        val date = Date()
-        return dateFormat.format(date)
+        return dateFormat.format(Date())
     }
 
     override fun onDestroy() {
         super.onDestroy()
         db.close()
     }
+
     fun openCalculator(view: View) {
         val intent = Intent(this, CalculatorActivity::class.java)
         startActivity(intent)
     }
 
-
-private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
-    val jobs = mutableListOf<Job>()
-    val cursor = db.query("Jobs", null, "employer_id = ?", arrayOf(employerId.toString()), null, null, null)
-    if (cursor.moveToFirst()) {
-        do {
-            val jobId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
-            val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-            val moneyhowmuch = cursor.getInt(cursor.getColumnIndexOrThrow("moneyhowmuch")).toDouble()
-            val description = cursor.getString(cursor.getColumnIndexOrThrow("description"))
-            val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
-
-            val job = Job(jobId, employerId, name, moneyhowmuch, description, dateAdded)
-            jobs.add(job)
-        } while (cursor.moveToNext())
+    private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
+        val jobs = mutableListOf<Job>()
+        val cursor = db.query("Jobs", null, "employer_id = ?", arrayOf(employerId.toString()), null, null, null)
+        if (cursor.moveToFirst()) {
+            do {
+                val jobId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                val moneyhowmuch = cursor.getDouble(cursor.getColumnIndexOrThrow("moneyhowmuch"))
+                val description = cursor.getString(cursor.getColumnIndexOrThrow("description"))
+                val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
+                val job = Job(jobId, employerId, name, moneyhowmuch, description, dateAdded)
+                jobs.add(job)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return jobs
     }
-    cursor.close()
-    return jobs
-}
 }
 
-// İşveren sınıfı
 data class Employer(
     val id: Long,
     val name: String,
@@ -469,7 +339,7 @@ data class Employer(
     val dateAdded: String,
     var isDeleted: Boolean = false,
 )
-// is sinifi
+
 data class Job(
     val id: Long,
     val employerId: Long,
