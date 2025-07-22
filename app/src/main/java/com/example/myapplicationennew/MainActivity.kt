@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         menuButton = findViewById(R.id.menuButton)
         menuAddEmployer = findViewById(R.id.menuAddEmployer)
-        menuAddJob = findViewById(R.id.menuAddJob)
 
         menuButton.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.END)
@@ -48,14 +47,10 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.END)
         }
 
-        menuAddJob.setOnClickListener {
-            Toast.makeText(this, "Please select an employer first.", Toast.LENGTH_SHORT).show()
-            drawerLayout.closeDrawer(GravityCompat.END)
-        }
-
         loadEmployersFromDatabase()
         displayEmployers()
     }
+
 
     private fun loadEmployersFromDatabase() {
         val cursor = db.query("Employers", null, null, null, null, null, null)
@@ -157,6 +152,7 @@ class MainActivity : AppCompatActivity() {
         val editTextJob = inputLayout.findViewById<EditText>(R.id.textnameWork)
         val editTextMoney = inputLayout.findViewById<EditText>(R.id.TextMoney)
         val editTextDescription = inputLayout.findViewById<EditText>(R.id.TextDescription)
+        val editTextPlace = inputLayout.findViewById<EditText>(R.id.TextPlace)
 
         builder.setView(inputLayout)
 
@@ -164,8 +160,9 @@ class MainActivity : AppCompatActivity() {
             val job = editTextJob.text.toString()
             val moneyhowmuch = editTextMoney.text.toString().toDoubleOrNull() ?: 0.0
             val description = editTextDescription.text.toString()
+            val place = editTextPlace.text.toString()
 
-            addJobToDatabase(employer.id, job, moneyhowmuch, description)
+            addJobToDatabase(employer.id, job, moneyhowmuch, place, description)
             displayJobs(employer)
             dialog.dismiss()
         }
@@ -188,7 +185,7 @@ class MainActivity : AppCompatActivity() {
 
         for (job in employer.jobs) {
             val jobView = TextView(this).apply {
-                text = "Work: ${job.name}\nAmount: ${job.moneyhowmuch} $\nDescription: ${job.description}"
+                text = "İş: ${job.name}\nÜcret: ${job.moneyhowmuch} ₺\nMekan: ${job.place}\nAçıklama: ${job.description}"
                 setBackgroundResource(R.drawable.rounded_button)
                 setPadding(16, 16, 16, 16)
                 layoutParams = LinearLayout.LayoutParams(
@@ -205,6 +202,7 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(jobView)
         }
     }
+
 
     private fun deleteJob(job: Job) {
         val builder = AlertDialog.Builder(this)
@@ -274,15 +272,17 @@ class MainActivity : AppCompatActivity() {
         return newId
     }
 
-    private fun addJobToDatabase(employerId: Long, name: String, moneyhowmuch: Double, description: String) {
+    private fun addJobToDatabase(employerId: Long, name: String, moneyhowmuch: Double, place: String, description: String) {
         val date = getCurrentDate()
         val jobValues = ContentValues().apply {
             put("employer_id", employerId)
             put("name", name)
             put("moneyhowmuch", moneyhowmuch)
+            put("place", place)
             put("description", description)
             put("dateAdded", date)
         }
+
         val jobId = db.insert("Jobs", null, jobValues)
 
         if (jobId != -1L) {
@@ -308,9 +308,36 @@ class MainActivity : AppCompatActivity() {
         db.close()
     }
 
-    fun openCalculator(view: View) {
-        val intent = Intent(this, CalculatorActivity::class.java)
-        startActivity(intent)
+    fun calculateAdd(view: View) { calculate('+') }
+    fun calculateSubtract(view: View) { calculate('-') }
+    fun calculateMultiply(view: View) { calculate('*') }
+    fun calculateDivide(view: View) { calculate('/') }
+
+    private fun calculate(operation: Char) {
+        val num1EditText = findViewById<EditText>(R.id.num1)
+        val num2EditText = findViewById<EditText>(R.id.num2)
+        val resultTextView = findViewById<TextView>(R.id.resultTextView)
+
+        val num1 = num1EditText.text.toString().toDoubleOrNull()
+        val num2 = num2EditText.text.toString().toDoubleOrNull()
+
+        if (num1 == null || num2 == null) {
+            resultTextView.text = "Lütfen iki geçerli sayı girin."
+            return
+        }
+
+        val result = when (operation) {
+            '+' -> num1 + num2
+            '-' -> num1 - num2
+            '*' -> num1 * num2
+            '/' -> if (num2 != 0.0) num1 / num2 else {
+                resultTextView.text = "Sıfıra bölünemez"
+                return
+            }
+            else -> 0.0
+        }
+
+        resultTextView.text = "Sonuç: $result"
     }
 
     private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
@@ -322,8 +349,9 @@ class MainActivity : AppCompatActivity() {
                 val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
                 val moneyhowmuch = cursor.getDouble(cursor.getColumnIndexOrThrow("moneyhowmuch"))
                 val description = cursor.getString(cursor.getColumnIndexOrThrow("description"))
+                val place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
                 val dateAdded = cursor.getString(cursor.getColumnIndexOrThrow("dateAdded"))
-                val job = Job(jobId, employerId, name, moneyhowmuch, description, dateAdded)
+                val job = Job(jobId, employerId, name, moneyhowmuch, place, description, dateAdded)
                 jobs.add(job)
             } while (cursor.moveToNext())
         }
@@ -345,6 +373,9 @@ data class Job(
     val employerId: Long,
     val name: String,
     val moneyhowmuch: Double,
+    val place: String,
     val description: String,
     val dateAdded: String,
 )
+
+
