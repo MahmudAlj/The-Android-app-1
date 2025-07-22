@@ -2,37 +2,85 @@ package com.example.myapplicationennew
 
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.lang.Exception
 
 class CalculatorActivity : AppCompatActivity() {
+
+    private lateinit var display: TextView
+    private var currentInput: String = ""
+    private var lastOperator: Char? = null
+    private var result: Double = 0.0
+    private var justEvaluated = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_calculator)
+        display = findViewById(R.id.calculatorDisplay)
     }
 
-    fun calculate(view: View) {
-        // Temel işlemler: toplama, çıkarma, çarpma, bölme
-        val num1 = findViewById<EditText>(R.id.num1).text.toString().toDoubleOrNull()
-        val num2 = findViewById<EditText>(R.id.num2).text.toString().toDoubleOrNull()
-        val resultTextView = findViewById<TextView>(R.id.resultTextView)
+    fun onDigitClick(view: View) {
+        val btn = view as Button
+        val digit = btn.text.toString()
 
-        if (num1 != null && num2 != null) {
-            when (view.id) {
-                R.id.addButton -> resultTextView.text = "Result: ${num1 + num2}"
-                R.id.subtractButton -> resultTextView.text = "Result: ${num1 - num2}"
-                R.id.multiplyButton -> resultTextView.text = "Result: ${num1 * num2}"
-                R.id.divideButton -> {
-                    if (num2 != 0.0) {
-                        resultTextView.text = "Result: ${num1 / num2}"
-                    } else {
-                        resultTextView.text = "Cannot divide by zero"
+        if (justEvaluated) {
+            currentInput = ""
+            justEvaluated = false
+        }
+
+        currentInput += digit
+        display.text = currentInput
+    }
+
+    fun onOperatorClick(view: View) {
+        val btn = view as Button
+        val operator = btn.text[0]
+
+        evaluatePending()
+        lastOperator = operator
+        currentInput = ""
+    }
+
+    fun onEqualClick(view: View) {
+        evaluatePending()
+        display.text = result.toString()
+        justEvaluated = true
+    }
+
+    private fun evaluatePending() {
+        val num = currentInput.toDoubleOrNull()
+        if (num != null) {
+            if (lastOperator == null) {
+                result = num
+            } else {
+                result = when (lastOperator) {
+                    '+' -> result + num
+                    '-' -> result - num
+                    '×' -> result * num
+                    '÷' -> if (num != 0.0) result / num else {
+                        display.text = "Sıfıra bölünemez"
+                        return
                     }
+                    '%' -> result % num
+                    else -> result
                 }
             }
-        } else {
-            resultTextView.text = "Please enter valid numbers"
+        }
+    }
+
+    fun onClearClick(view: View) {
+        currentInput = ""
+        result = 0.0
+        lastOperator = null
+        display.text = "0"
+    }
+
+    fun onBackspaceClick(view: View) {
+        if (currentInput.isNotEmpty()) {
+            currentInput = currentInput.dropLast(1)
+            display.text = if (currentInput.isEmpty()) "0" else currentInput
         }
     }
 }
