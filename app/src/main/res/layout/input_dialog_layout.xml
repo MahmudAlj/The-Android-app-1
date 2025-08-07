@@ -22,15 +22,15 @@
         android:inputType="numberDecimal" />
 
     <EditText
+        android:id="@+id/TextPlace"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="place" />
+
+    <EditText
         android:id="@+id/TextDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Description" />
-
-    <EditText
-        android:id="@+id/TextPlace"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Mekan" />
 
 </LinearLayout>
