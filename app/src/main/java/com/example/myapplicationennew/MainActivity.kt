@@ -16,7 +16,11 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.example.myapplicationennew.R
 import java.text.SimpleDateFormat
 import java.util.*
-
+// yapildi mi yoksa daha yapilmadimi tikle göster
+// yapildi ise ana kasaya ekle
+// yapilmadiysa beklet
+// history buttonu ekle silinen bir iş varsa orda gözüksün
+// 3 çizgiye basildiğinda en altta total diye bir yer olsun orda kazanilan butun para orda gözüksün
 class MainActivity : AppCompatActivity() {
     private val employers = mutableListOf<Employer>()
     private lateinit var linearLayout: LinearLayout
