@@ -1,5 +1,6 @@
 package com.example.myapplicationennew
-
+// iş silme  olmiyor
+// iş bilgi güncelleme
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
@@ -8,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import com.example.myapplicationennew.R
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
