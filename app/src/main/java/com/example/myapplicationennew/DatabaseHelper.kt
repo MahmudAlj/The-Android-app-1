@@ -68,7 +68,6 @@ class DatabaseHelper(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Artımsal ve verisiz kayıp
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE $TBL_EMPLOYERS ADD COLUMN $EMP_IS_DELETED INTEGER DEFAULT 0;")
         }
@@ -81,7 +80,7 @@ class DatabaseHelper(context: Context) :
         }
     }
 
-    // ------- Yardımcı Metotlar -------
+    // ------- Yardımcı Metotlar (Jobs) -------
 
     fun setJobDone(jobId: Int, done: Boolean) {
         val values = ContentValues().apply { put(JOB_IS_DONE, if (done) 1 else 0) }
@@ -100,6 +99,17 @@ class DatabaseHelper(context: Context) :
 
     fun hardDeleteJob(jobId: Int) {
         writableDatabase.delete(TBL_JOBS, "$JOB_ID=?", arrayOf(jobId.toString()))
+    }
+
+    /** Bir işverenin TÜM işlerini soft-delete yapar, etkilenen satır sayısını döner. */
+    fun softDeleteJobsByEmployer(employerId: Long): Int {
+        val values = ContentValues().apply { put(JOB_IS_DELETED, 1) }
+        return writableDatabase.update(
+            TBL_JOBS,
+            values,
+            "$JOB_EMPLOYER_ID=? AND ($JOB_IS_DELETED IS NULL OR $JOB_IS_DELETED=0)",
+            arrayOf(employerId.toString())
+        )
     }
 
     fun getDeletedJobs(): Cursor {
@@ -125,4 +135,57 @@ class DatabaseHelper(context: Context) :
             return if (c.moveToFirst()) c.getDouble(0).takeIf { !it.isNaN() } ?: 0.0 else 0.0
         }
     }
+
+    // ------- Takvim için Yardımcılar (Employers) -------
+
+    /**
+     * "dd MMMM yyyy" formatındaki [dateStr] gününde EKLENEN (isDeleted=0) işverenleri döndürür.
+     * CalendarActivity, güne tıklayınca listede bunları gösterir.
+     */
+    fun getEmployersAddedOn(dateStr: String): List<EmployerSimple> {
+        val list = mutableListOf<EmployerSimple>()
+        val cursor = readableDatabase.query(
+            TBL_EMPLOYERS,
+            arrayOf(EMP_ID, EMP_NAME),
+            "$EMP_DATE_ADDED = ? AND $EMP_IS_DELETED = 0",
+            arrayOf(dateStr),
+            null, null,
+            "$EMP_ID DESC"
+        )
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(0)
+                val name = it.getString(1)
+                list.add(EmployerSimple(id, name))
+            }
+        }
+        return list
+    }
+
+    /**
+     * Takvimde nokta çizmek için: her gün kaç işveren eklendi? (sadece isDeleted=0)
+     * Dönüş: Map<"dd MMMM yyyy", count>
+     */
+    fun getEmployerCountsByDate(): Map<String, Int> {
+        val map = mutableMapOf<String, Int>()
+        readableDatabase.rawQuery(
+            """
+            SELECT $EMP_DATE_ADDED, COUNT(*) AS cnt
+            FROM $TBL_EMPLOYERS
+            WHERE $EMP_IS_DELETED = 0
+            GROUP BY $EMP_DATE_ADDED
+            """.trimIndent(),
+            null
+        ).use { c ->
+            while (c.moveToNext()) {
+                val dateStr = c.getString(0)
+                val cnt = c.getInt(1)
+                map[dateStr] = cnt
+            }
+        }
+        return map
+    }
 }
+
+/** Takvim listesinde sadece id+isim gerektiği için basit tip. */
+data class EmployerSimple(val id: Long, val name: String)
