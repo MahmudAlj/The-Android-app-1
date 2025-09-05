@@ -71,6 +71,12 @@
             android:layout_height="wrap_content"
             android:text="Hesap Makinesi"
             android:onClick="openCalculator" />
+        <Button
+            android:id="@+id/menuCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Calendar (Geçmiş)" />
+
 
         <Button
             android:id="@+id/menuHistory"
