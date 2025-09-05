@@ -1,5 +1,5 @@
 package com.example.myapplicationennew
-
+// toplam para yanliş hesapliyor
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.View
 import android.widget.*
-import com.example.myapplicationennew.R
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -23,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuButton: ImageButton
     private lateinit var menuAddEmployer: Button
     private var menuHistoryBtn: Button? = null
+    private var menuCalendarBtn: Button? = null
     private var totalText: TextView? = null
 
     // --- Veri/DB ---
@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         menuButton = findViewById(R.id.menuButton)
         menuAddEmployer = findViewById(R.id.menuAddEmployer)
         menuHistoryBtn = findViewById(R.id.menuHistory)
+        menuCalendarBtn = findViewById(R.id.menuCalendar)   // varsa Calendar butonu bağlarız
         totalText = findViewById(R.id.menuTotalValue)
 
         // Drawer
@@ -53,6 +54,10 @@ class MainActivity : AppCompatActivity() {
         }
         menuHistoryBtn?.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
+        }
+        menuCalendarBtn?.setOnClickListener {
+            // CalendarActivity mevcut
+            startActivity(Intent(this, CalendarActivity::class.java))
         }
 
         // Başlangıç
@@ -88,6 +93,7 @@ class MainActivity : AppCompatActivity() {
                 val newEmployerId = addEmployerToDatabase(name)
                 val newEmployer = Employer(newEmployerId, name, mutableListOf(), getCurrentDate(), isDeleted = false)
                 employers.add(newEmployer)
+                ActionLogger.log(this, "İşveren eklendi: $name") // Günlük
                 displayEmployers()
             } else {
                 Toast.makeText(this, "Employer already exists", Toast.LENGTH_SHORT).show()
@@ -129,12 +135,17 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Delete Employer")
             .setMessage("Are you sure you want to delete this employer and all associated jobs?")
             .setPositiveButton("Delete") { d, _ ->
-                val rows = deleteEmployerFromDatabase(employer.id)
+                // Employer'ı soft-delete yap
+                val rows = softDeleteEmployerInDatabase(employer.id)
+                // İlgili tüm işleri de soft-delete yap
+                dbHelper.softDeleteJobsByEmployer(employer.id)
                 if (rows > 0) {
                     employer.isDeleted = true
-                    displayEmployers()
+                    employer.jobs.forEach { it.isDeleted = true }
                     updateTotalInDrawer()
+                    displayEmployers()
                     Toast.makeText(this, "Employer deleted", Toast.LENGTH_SHORT).show()
+                    ActionLogger.log(this, "İşveren silindi: ${employer.name}") // Günlük
                 } else {
                     Toast.makeText(this, "Failed to delete employer", Toast.LENGTH_SHORT).show()
                 }
@@ -163,6 +174,7 @@ class MainActivity : AppCompatActivity() {
             val place = editTextPlace.text.toString().trim()
 
             addJobToDatabase(employer.id, jobName, money, place, desc)
+            ActionLogger.log(this, "İş eklendi: ${employer.name} • $jobName • ₺$money • $place") // Günlük
             refreshEmployerJobs(employer)
             displayJobs(employer)
             dialog.dismiss()
@@ -229,6 +241,7 @@ class MainActivity : AppCompatActivity() {
                     dbHelper.setJobDone(job.id.toInt(), checked)
                     job.isDone = checked
                     updateTotalInDrawer()
+                    ActionLogger.log(this@MainActivity, "İş ${if (checked) "tamamlandı" else "geri alındı"}: ${job.name} (${employer.name})") // Günlük
                 }
                 // CheckBox'a uzun basış da aynı menüyü açsın
                 setOnLongClickListener {
@@ -237,7 +250,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // 🔻 KALEM (edit) BUTONUNU KALDIRDIK — sadece CheckBox var
             container.addView(
                 check,
                 LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -255,7 +267,7 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { dialog, which ->
                 when (which) {
                     0 -> showEditJobDialog(employer, job)   // Düzenle
-                    1 -> hardDeleteJob(job, employer)        // Sil
+                    1 -> softDeleteJob(job, employer)        // Sil (soft delete)
                     else -> dialog.dismiss()
                 }
             }
@@ -310,6 +322,7 @@ class MainActivity : AppCompatActivity() {
                 updateTotalInDrawer()
                 displayJobs(employer)
                 Toast.makeText(this, "Job updated", Toast.LENGTH_SHORT).show()
+                ActionLogger.log(this, "İş güncellendi: ${job.name} → $newName (${employer.name})") // Günlük
             } else {
                 Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show()
             }
@@ -319,17 +332,19 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun hardDeleteJob(job: Job, employer: Employer) {
+    // -- İŞİ SOFT DELETE --
+    private fun softDeleteJob(job: Job, employer: Employer) {
         AlertDialog.Builder(this)
             .setTitle("İşi Sil")
-            .setMessage("\"${job.name}\" silinsin mi?")
+            .setMessage("\"${job.name}\" silinsin mi? (History'e taşınacak)")
             .setPositiveButton("Sil") { d, _ ->
-                val rows = deleteJobFromDatabase(job.id)
-                if (rows > 0) {
-                    employer.jobs.removeAll { it.id == job.id }
+                val ok = softDeleteJobInDatabase(job.id)
+                if (ok > 0) {
+                    employer.jobs.firstOrNull { it.id == job.id }?.isDeleted = true
                     updateTotalInDrawer()
                     displayJobs(employer)
                     Toast.makeText(this, "İş silindi", Toast.LENGTH_SHORT).show()
+                    ActionLogger.log(this, "İş silindi: ${job.name} (${employer.name})") // Günlük
                 } else {
                     Toast.makeText(this, "Silme başarısız", Toast.LENGTH_SHORT).show()
                 }
@@ -407,8 +422,8 @@ class MainActivity : AppCompatActivity() {
             put("place", place)
             put("description", description)
             put("dateAdded", date)   // iş eklenme tarihi
-            put("isDone", 0)         // varsa kolon
-            put("isDeleted", 0)      // varsa kolon
+            put("isDone", 0)
+            put("isDeleted", 0)
         }
         val jobId = db.insert("Jobs", null, values)
         if (jobId != -1L) {
@@ -429,11 +444,14 @@ class MainActivity : AppCompatActivity() {
         return db.update("Jobs", values, "id = ?", arrayOf(jobId.toString()))
     }
 
-    private fun deleteJobFromDatabase(jobId: Long): Int {
-        return db.delete("Jobs", "id = ?", arrayOf(jobId.toString()))
+    // SOFT DELETE: Jobs -> isDeleted=1
+    private fun softDeleteJobInDatabase(jobId: Long): Int {
+        dbHelper.softDeleteJob(jobId.toInt())
+        return 1
     }
 
-    private fun deleteEmployerFromDatabase(employerId: Long): Int {
+    // SOFT DELETE: Employers -> isDeleted=1
+    private fun softDeleteEmployerInDatabase(employerId: Long): Int {
         val cv = ContentValues().apply { put("isDeleted", 1) }
         return db.update("Employers", cv, "id = ?", arrayOf(employerId.toString()))
     }
