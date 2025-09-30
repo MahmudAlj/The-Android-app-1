@@ -93,25 +93,29 @@ class CalendarActivity : AppCompatActivity() {
         val dateStr = fmtDefault.format(cal.time)
         txtSelectedDate.text = "Seçilen gün: $dateStr"
 
-        val employers = db.getEmployersAddedOn(dateStr) // sadece isDeleted=0
+        // Bu fonksiyon List<String> döndürüyor (sadece isimler)
+        val employers: List<String> = db.getEmployersAddedOn(dateStr)
+
         txtSummary.text = if (employers.isEmpty()) {
             "Bu günde eklenmiş işveren yok."
         } else {
             "Bu günde eklenen işveren sayısı: ${employers.size}"
         }
 
+        // Artık map { it.name } YOK — direkt listeyi veriyoruz
         listEmployers.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_list_item_1,
-            employers.map { it.name }
+            employers
         )
 
         listEmployers.setOnItemClickListener { _, _, position, _ ->
-            val e = employers[position]
-            Toast.makeText(this, "İşveren: ${e.name}", Toast.LENGTH_SHORT).show()
-            // İstersen buradan işverene gitme/detay açılabilir.
+            val name = employers[position]  // e.name yerine direkt string
+            Toast.makeText(this, "İşveren: $name", Toast.LENGTH_SHORT).show()
+            // İstersen burada name ile arama yapıp detay açabilirsin.
         }
     }
+
 
     /** "dd MMMM yyyy" parse - cihaz dili ve TR denemesiyle güvenli. */
     private fun parseDaySafely(dateStr: String): Date? {

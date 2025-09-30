@@ -77,6 +77,12 @@
             android:layout_height="wrap_content"
             android:text="Calendar (Geçmiş)" />
 
+        <Button
+            android:id="@+id/menuIncomplete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tamamlanmayan İşler"
+            android:layout_marginTop="8dp"/>
 
         <Button
             android:id="@+id/menuHistory"

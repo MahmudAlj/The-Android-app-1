@@ -11,14 +11,14 @@ class DatabaseHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "MyAppDatabase.db"
-        // v5: Jobs tablosuna isDone + isDeleted eklendi, toplam için yardımcı metotlar eklendi
-        private const val DATABASE_VERSION = 5
+        private const val DATABASE_VERSION = 6   // ✅ versiyon artırıldı
 
         const val TBL_EMPLOYERS = "Employers"
         const val EMP_ID = "id"
         const val EMP_NAME = "name"
         const val EMP_DATE_ADDED = "dateAdded"
         const val EMP_IS_DELETED = "isDeleted"
+        const val EMP_AUTO_APPROVE = "autoApprove"   // ✅ yeni sütun
 
         const val TBL_JOBS = "Jobs"
         const val JOB_ID = "id"
@@ -40,32 +40,34 @@ class DatabaseHelper(context: Context) :
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             """
-            CREATE TABLE $TBL_EMPLOYERS (
-                $EMP_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $EMP_NAME TEXT,
-                $EMP_DATE_ADDED TEXT,
-                $EMP_IS_DELETED INTEGER DEFAULT 0
-            );
-            """.trimIndent()
+        CREATE TABLE Employersğ (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            dateAdded TEXT,
+            isDeleted INTEGER DEFAULT 0,
+            autoApprove INTEGER DEFAULT 0   
+             
+        )
+        """.trimIndent()
         )
 
         db.execSQL(
             """
-            CREATE TABLE $TBL_JOBS (
-                $JOB_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $JOB_EMPLOYER_ID INTEGER,
-                $JOB_NAME TEXT,
-                $JOB_AMOUNT REAL,
-                $JOB_PLACE TEXT,
-                $JOB_DESC TEXT,
-                $JOB_DATE_ADDED TEXT,
-                $JOB_IS_DONE INTEGER DEFAULT 0,
-                $JOB_IS_DELETED INTEGER DEFAULT 0,
-                FOREIGN KEY($JOB_EMPLOYER_ID) REFERENCES $TBL_EMPLOYERS($EMP_ID) ON DELETE CASCADE
-            );
-            """.trimIndent()
+        CREATE TABLE Jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employer_id INTEGER,
+            name TEXT,
+            moneyhowmuch REAL,
+            place TEXT,
+            description TEXT,
+            dateAdded TEXT,
+            isDone INTEGER DEFAULT 0,
+            isDeleted INTEGER DEFAULT 0
+        )
+        """.trimIndent()
         )
     }
+
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
@@ -77,6 +79,12 @@ class DatabaseHelper(context: Context) :
         if (oldVersion < 5) {
             db.execSQL("ALTER TABLE $TBL_JOBS ADD COLUMN $JOB_IS_DONE INTEGER DEFAULT 0;")
             db.execSQL("ALTER TABLE $TBL_JOBS ADD COLUMN $JOB_IS_DELETED INTEGER DEFAULT 0;")
+        }
+        if (oldVersion < 6) {
+            db.execSQL("ALTER TABLE $TBL_EMPLOYERS ADD COLUMN $EMP_AUTO_APPROVE INTEGER DEFAULT 0;")
+        }
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE Employers ADD COLUMN autoApprove INTEGER DEFAULT 0")
         }
     }
 
@@ -101,17 +109,7 @@ class DatabaseHelper(context: Context) :
         writableDatabase.delete(TBL_JOBS, "$JOB_ID=?", arrayOf(jobId.toString()))
     }
 
-    /** Bir işverenin TÜM işlerini soft-delete yapar, etkilenen satır sayısını döner. */
-    fun softDeleteJobsByEmployer(employerId: Long): Int {
-        val values = ContentValues().apply { put(JOB_IS_DELETED, 1) }
-        return writableDatabase.update(
-            TBL_JOBS,
-            values,
-            "$JOB_EMPLOYER_ID=? AND ($JOB_IS_DELETED IS NULL OR $JOB_IS_DELETED=0)",
-            arrayOf(employerId.toString())
-        )
-    }
-
+    /** Silinmiş işleri getirir */
     fun getDeletedJobs(): Cursor {
         return readableDatabase.rawQuery(
             """
@@ -124,68 +122,61 @@ class DatabaseHelper(context: Context) :
         )
     }
 
+    /** ✅ Sadece isDone=1, isDeleted=0 ve işveren de silinmemiş olanların toplamını döner */
     fun getTotalEarned(): Double {
         readableDatabase.rawQuery(
             """
-            SELECT SUM($JOB_AMOUNT) 
-            FROM $TBL_JOBS 
-            WHERE $JOB_IS_DONE = 1 AND $JOB_IS_DELETED = 0
-            """.trimIndent(), null
-        ).use { c ->
-            return if (c.moveToFirst()) c.getDouble(0).takeIf { !it.isNaN() } ?: 0.0 else 0.0
-        }
-    }
-
-    // ------- Takvim için Yardımcılar (Employers) -------
-
-    /**
-     * "dd MMMM yyyy" formatındaki [dateStr] gününde EKLENEN (isDeleted=0) işverenleri döndürür.
-     * CalendarActivity, güne tıklayınca listede bunları gösterir.
-     */
-    fun getEmployersAddedOn(dateStr: String): List<EmployerSimple> {
-        val list = mutableListOf<EmployerSimple>()
-        val cursor = readableDatabase.query(
-            TBL_EMPLOYERS,
-            arrayOf(EMP_ID, EMP_NAME),
-            "$EMP_DATE_ADDED = ? AND $EMP_IS_DELETED = 0",
-            arrayOf(dateStr),
-            null, null,
-            "$EMP_ID DESC"
-        )
-        cursor.use {
-            while (it.moveToNext()) {
-                val id = it.getLong(0)
-                val name = it.getString(1)
-                list.add(EmployerSimple(id, name))
-            }
-        }
-        return list
-    }
-
-    /**
-     * Takvimde nokta çizmek için: her gün kaç işveren eklendi? (sadece isDeleted=0)
-     * Dönüş: Map<"dd MMMM yyyy", count>
-     */
-    fun getEmployerCountsByDate(): Map<String, Int> {
-        val map = mutableMapOf<String, Int>()
-        readableDatabase.rawQuery(
-            """
-            SELECT $EMP_DATE_ADDED, COUNT(*) AS cnt
-            FROM $TBL_EMPLOYERS
-            WHERE $EMP_IS_DELETED = 0
-            GROUP BY $EMP_DATE_ADDED
+            SELECT COALESCE(SUM(j.$JOB_AMOUNT), 0)
+            FROM $TBL_JOBS j
+            JOIN $TBL_EMPLOYERS e ON j.$JOB_EMPLOYER_ID = e.$EMP_ID
+            WHERE j.$JOB_IS_DONE = 1
+              AND j.$JOB_IS_DELETED = 0
+              AND e.$EMP_IS_DELETED = 0
             """.trimIndent(),
             null
         ).use { c ->
-            while (c.moveToNext()) {
-                val dateStr = c.getString(0)
-                val cnt = c.getInt(1)
-                map[dateStr] = cnt
-            }
+            return if (c.moveToFirst()) c.getDouble(0) else 0.0
         }
-        return map
     }
+    fun softDeleteJobsByEmployer(employerId: Long) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("isDeleted", 1)
+        }
+        db.update("Jobs", values, "employer_id = ?", arrayOf(employerId.toString()))
+    }
+    fun getEmployerCountsByDate(): Map<String, Int> {
+        val db = readableDatabase
+        val result = mutableMapOf<String, Int>()
+        val cursor = db.rawQuery(
+            "SELECT dateAdded, COUNT(*) FROM Employers WHERE isDeleted = 0 GROUP BY dateAdded",
+            null
+        )
+        while (cursor.moveToNext()) {
+            val date = cursor.getString(0)
+            val count = cursor.getInt(1)
+            result[date] = count
+        }
+        cursor.close()
+        return result
+    }
+
+    fun getEmployersAddedOn(date: String): List<String> {
+        val db = readableDatabase
+        val employers = mutableListOf<String>()
+        val cursor = db.rawQuery(
+            "SELECT name FROM Employers WHERE isDeleted = 0 AND dateAdded = ?",
+            arrayOf(date)
+        )
+        while (cursor.moveToNext()) {
+            employers.add(cursor.getString(0))
+        }
+        cursor.close()
+        return employers
+    }
+
+
 }
 
-/** Takvim listesinde sadece id+isim gerektiği için basit tip. */
+/** Employer listesinde sadece id+isim gerektiği için basit tip */
 data class EmployerSimple(val id: Long, val name: String)

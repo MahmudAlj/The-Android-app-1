@@ -10,7 +10,14 @@
 
     <EditText
         android:id="@+id/textnameWork2"
-        android:layout_width="match_parent"
+        android:layout_width="372dp"
         android:layout_height="wrap_content"
         android:hint="The Employer Name" />
+
+    <CheckBox
+        android:id="@+id/checkAutoApprove"
+        android:layout_width="371dp"
+        android:layout_height="wrap_content"
+        android:text="Otomatik Onayla" />
+
 </LinearLayout>
