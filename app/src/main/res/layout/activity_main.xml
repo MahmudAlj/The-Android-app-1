@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
@@ -17,14 +18,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="12dp"
+            android:background="#7FFF00">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Employer List"
-                android:textSize="18sp" />
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/menuButton"
@@ -32,7 +36,8 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_menu_more"
                 android:contentDescription="Menu"
-                android:background="@android:color/transparent" />
+                android:background="@android:color/transparent"
+                android:tint="@android:color/white"/>
         </LinearLayout>
 
         <!-- Liste Alanı -->
@@ -45,8 +50,20 @@
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:padding="8dp"/>
         </ScrollView>
+
+        <!-- Alt Menü (Bottom Navigation) -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/windowBackground"
+            app:itemIconTint="@color/colorPrimary"
+            app:itemTextColor="@color/colorPrimary"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_nav_menu"/>
     </LinearLayout>
 
     <!-- Sağdan açılan Menü -->
@@ -63,32 +80,44 @@
             android:id="@+id/menuAddEmployer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Employer" />
+            android:text="Add Employer"
+            android:background="#7FFF00"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
 
         <Button
             android:id="@+id/openCalculatorButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Hesap Makinesi"
-            android:onClick="openCalculator" />
+            android:onClick="openCalculator"
+            android:background="#7FFF00"
+            android:textColor="@android:color/white"/>
+
         <Button
             android:id="@+id/menuCalendar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Calendar (Geçmiş)" />
+            android:text="Calendar"
+            android:background="#7FFF00"
+            android:textColor="@android:color/white"/>
 
         <Button
             android:id="@+id/menuIncomplete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tamamlanmayan İşler"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:background="#7FFF00"
+            android:textColor="@android:color/white"/>
 
         <Button
             android:id="@+id/menuHistory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="History (Silinen İşler)" />
+            android:text="History"
+            android:background="#7FFF00"
+            android:textColor="@android:color/white"/>
 
         <!-- Esnek boşluk: TOTAL en alta yapışsın -->
         <View

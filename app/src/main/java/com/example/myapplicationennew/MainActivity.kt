@@ -1,7 +1,4 @@
 package com.example.myapplicationennew
-// toplam para yanliş hesapliyor  ✅ düzeltildi (sadece isDone=true toplanıyor)
-// günlük diye bir seçenek olsun işler otomatik onaylansin  ✅ eklendi (CheckBox ile)
-// iş verendeki gelir onaylamadiğim halde hepsini toplama atiyor  ✅ senkronize edildi
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -128,28 +125,35 @@ class MainActivity : AppCompatActivity() {
     private fun displayEmployers() {
         linearLayout.removeAllViews()
         for (employer in employers.filter { !it.isDeleted }) {
-            val tv = TextView(this).apply {
-                val totalIncome = employer.jobs
-                    .filter { !it.isDeleted && it.isDone }   // ✅ sadece onaylanmış işler
-                    .sumOf { it.moneyhowmuch }
-                text = "Employer: ${employer.name}\nEklenme: ${employer.dateAdded}  •  Toplam: $totalIncome ₺"
-                setSingleLine(false)
-                setBackgroundResource(android.R.drawable.btn_default)
-                setPadding(16, 16, 16, 16)
+            val card = com.google.android.material.card.MaterialCardView(this).apply {
+                radius = 16f
+                cardElevation = 6f
+                setContentPadding(24, 24, 24, 24)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(14, 14, 14, 14) }
-
-                setOnClickListener { displayJobs(employer) }
-                setOnLongClickListener {
-                    deleteEmployer(employer)
-                    true
-                }
+                ).apply { setMargins(16, 16, 16, 16) }
             }
-            linearLayout.addView(tv)
+
+            val tv = TextView(this).apply {
+                val totalIncome = employer.jobs
+                    .filter { !it.isDeleted && it.isDone }
+                    .sumOf { it.moneyhowmuch }
+                text = "👤 ${employer.name}\n📅 ${employer.dateAdded}\n💰 Toplam: ₺$totalIncome"
+                textSize = 16f
+                setTextColor(getColor(android.R.color.black))
+            }
+
+            card.addView(tv)
+            card.setOnClickListener { displayJobs(employer) }
+            card.setOnLongClickListener {
+                deleteEmployer(employer)
+                true
+            }
+            linearLayout.addView(card)
         }
     }
+
 
     private fun deleteEmployer(employer: Employer) {
         AlertDialog.Builder(this)
@@ -215,70 +219,52 @@ class MainActivity : AppCompatActivity() {
     private fun displayJobs(employer: Employer) {
         linearLayout.removeAllViews()
 
-        // Üst bar
+        // Başlık kısmı
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(12, 12, 12, 12)
         }
         val backBtn = Button(this).apply {
-            text = "Back"
+            text = "⬅ Geri"
             setBackgroundResource(android.R.drawable.btn_default)
             setOnClickListener { displayEmployers() }
         }
         val title = TextView(this).apply {
-            text = "${employer.name} • ${employer.dateAdded}"
+            text = "👤 ${employer.name} • 📅 ${employer.dateAdded}"
             textSize = 18f
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            setPadding(12, 0, 12, 0)
-        }
-        val addJobBtn = ImageButton(this).apply {
-            setImageResource(android.R.drawable.ic_input_add)
-            contentDescription = "Add Job"
-            setBackgroundResource(android.R.color.transparent)
-            setOnClickListener { showJobInputDialog(employer) }
         }
         header.addView(backBtn)
         header.addView(title)
-        header.addView(addJobBtn)
         linearLayout.addView(header)
 
         // İş kartları
         for (job in employer.jobs.filter { !it.isDeleted }) {
-            val container = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(16, 16, 16, 16)
+            val card = com.google.android.material.card.MaterialCardView(this).apply {
+                radius = 16f
+                cardElevation = 4f
+                setContentPadding(24, 24, 24, 24)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(16, 16, 16, 16) }
-                setBackgroundResource(R.drawable.rounded_button)
-                setOnLongClickListener {
-                    showJobActionsDialog(employer, job)
-                    true
-                }
+                ).apply { setMargins(16, 12, 16, 12) }
             }
 
             val check = CheckBox(this).apply {
-                text = "İş: ${job.name}\nÜcret: ${job.moneyhowmuch} ₺\nMekan: ${job.place}\nAçıklama: ${job.description}\nTarih: ${job.dateAdded}"
+                text = "🛠 İş: ${job.name}\n💰 Ücret: ₺${job.moneyhowmuch}\n📍 Mekan: ${job.place}\n📝 Açıklama: ${job.description}\n📅 Tarih: ${job.dateAdded}"
                 isChecked = job.isDone
                 setOnCheckedChangeListener { _, checked ->
                     dbHelper.setJobDone(job.id.toInt(), checked)
                     job.isDone = checked
                     updateTotalInDrawer()
-                    // İşveren toplamı ekranda da güncellensin:
                     displayJobs(employer)
-                    ActionLogger.log(this@MainActivity, "İş ${if (checked) "tamamlandı" else "geri alındı"}: ${job.name} (${employer.name})")
-                }
-                setOnLongClickListener {
-                    showJobActionsDialog(employer, job)
-                    true
                 }
             }
 
-            container.addView(check, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-            linearLayout.addView(container)
+            card.addView(check)
+            linearLayout.addView(card)
         }
     }
+
 
     // UZUN BAS MENÜSÜ: DÜZENLE / SİL
     private fun showJobActionsDialog(employer: Employer, job: Job) {
@@ -533,12 +519,12 @@ class MainActivity : AppCompatActivity() {
         val list = mutableListOf<Triple<String, String, Long>>() // (jobText, employerName, jobId)
         db.rawQuery(
             """
-            SELECT j.id, j.name, j.moneyhowmuch, j.place, j.description, j.dateAdded, e.name
-            FROM Jobs j
-            LEFT JOIN Employers e ON j.employer_id = e.id
-            WHERE j.isDone = 0 AND j.isDeleted = 0 AND (e.isDeleted = 0 OR e.isDeleted IS NULL)
-            ORDER BY j.id DESC
-            """.trimIndent(),
+        SELECT j.id, j.name, j.moneyhowmuch, j.place, j.description, j.dateAdded, e.name
+        FROM Jobs j
+        LEFT JOIN Employers e ON j.employer_id = e.id
+        WHERE j.isDone = 0 AND j.isDeleted = 0 AND (e.isDeleted = 0 OR e.isDeleted IS NULL)
+        ORDER BY j.id DESC
+        """.trimIndent(),
             null
         ).use { c ->
             while (c.moveToNext()) {
@@ -564,22 +550,38 @@ class MainActivity : AppCompatActivity() {
         }
 
         for ((text, _, jobId) in list) {
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(16, 16, 16, 16)
+            // 🔹 CardView
+            val card = androidx.cardview.widget.CardView(this).apply {
+                radius = 20f
+                cardElevation = 8f
+                useCompatPadding = true
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(16, 12, 16, 12) }
-                setBackgroundResource(R.drawable.rounded_button)
+                ).apply {
+                    setMargins(20, 20, 20, 20)
+                }
             }
+
+            // 🔹 İç layout
+            val innerLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(24, 24, 24, 24)
+            }
+
+            // 🔹 Job bilgisi
             val tv = TextView(this).apply {
                 this.text = text
-                setSingleLine(false)
+                textSize = 14f
+                setTextColor(resources.getColor(android.R.color.black, theme))
             }
+
+            // 🔹 Action butonları
             val actions = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 16, 0, 0)
             }
+
             val markDone = Button(this).apply {
                 val text = "Tamamla"
                 setOnClickListener {
@@ -596,14 +598,18 @@ class MainActivity : AppCompatActivity() {
                     displayIncompleteJobs()
                 }
             }
+
             actions.addView(markDone, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             actions.addView(deleteBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
-            row.addView(tv)
-            row.addView(actions)
-            linearLayout.addView(row)
+            innerLayout.addView(tv)
+            innerLayout.addView(actions)
+            card.addView(innerLayout)
+
+            linearLayout.addView(card)
         }
     }
+
 }
 
 // --- Veri sınıfları ---
