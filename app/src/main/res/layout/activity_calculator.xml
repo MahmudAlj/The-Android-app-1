@@ -5,6 +5,18 @@
     android:padding="16dp"
     android:background="#000000">
 
+
+    <Button
+        android:id="@+id/btnBackCalc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← Geri"
+        android:onClick="onBackPressed"
+        android:background="#7FFF00"
+        android:textColor="#FFFFFF"
+        android:padding="8dp"
+        android:textStyle="bold"/>
+
     <TextView
         android:id="@+id/calculatorDisplay"
         android:layout_width="match_parent"
