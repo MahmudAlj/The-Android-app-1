@@ -220,6 +220,14 @@ class MainActivity : AppCompatActivity() {
         linearLayout.removeAllViews()
 
         // Başlık kısmı
+        val addJobBtn = Button(this).apply {
+            text = "➕ Yeni İş Ekle"
+            setOnClickListener {
+                showJobInputDialog(employer)
+            }
+        }
+        linearLayout.addView(addJobBtn)
+
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(12, 12, 12, 12)
@@ -583,7 +591,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val markDone = Button(this).apply {
-                val text = "Tamamla"
+                this.text = "Tamamla"
                 setOnClickListener {
                     dbHelper.setJobDone(jobId.toInt(), true)
                     updateTotalInDrawer()
@@ -591,13 +599,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             val deleteBtn = Button(this).apply {
-                val text = "Sil"
+                this.text = "Sil"
                 setOnClickListener {
                     dbHelper.softDeleteJob(jobId.toInt())
                     updateTotalInDrawer()
                     displayIncompleteJobs()
                 }
             }
+
 
             actions.addView(markDone, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             actions.addView(deleteBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
