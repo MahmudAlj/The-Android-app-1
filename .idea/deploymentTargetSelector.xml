@@ -4,19 +4,19 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-05-28T13:04:39.913231300Z">
+        <DropdownSelection timestamp="2025-10-17T11:43:41.664230600Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\oztur\.android\avd\Pixel_8_API_34.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\aljma\.android\avd\Pixel_7_Pro_API_34.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection>
           <targets>
             <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\aljma\.android\avd\Pixel_3a_API_34_extension_level_7_x86_64.avd" />
-              </handle>
+              <template>
+                <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=pa3q/35" />
+              </template>
             </Target>
           </targets>
         </DialogSelection>

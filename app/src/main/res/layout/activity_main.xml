@@ -5,7 +5,8 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@color/backgroundLight">
 
     <!-- Ana içerik -->
     <LinearLayout
@@ -18,8 +19,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="12dp"
-            android:background="#7FFF00">
+            android:padding="16dp"
+            android:background="@color/colorPrimary"
+            android:elevation="4dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -28,30 +30,33 @@
                 android:text="Employer List"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/buttonText"
+                android:fontFamily="sans-serif-medium" />
 
             <ImageButton
                 android:id="@+id/menuButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@android:drawable/ic_menu_more"
                 android:contentDescription="Menu"
                 android:background="@android:color/transparent"
-                android:tint="@android:color/white"/>
+                android:tint="@color/buttonText"/>
         </LinearLayout>
 
         <!-- Liste Alanı -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:overScrollMode="never">
 
             <LinearLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="8dp"/>
+                android:padding="12dp"
+                android:dividerPadding="8dp"/>
         </ScrollView>
 
         <!-- Alt Menü (Bottom Navigation) -->
@@ -59,11 +64,12 @@
             android:id="@+id/bottomNav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:attr/windowBackground"
+            android:background="@color/cardBackground"
             app:itemIconTint="@color/colorPrimary"
             app:itemTextColor="@color/colorPrimary"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu"/>
+            app:menu="@menu/bottom_nav_menu"
+            android:elevation="8dp"/>
     </LinearLayout>
 
     <!-- Sağdan açılan Menü -->
@@ -73,53 +79,46 @@
         android:layout_height="match_parent"
         android:layout_gravity="end"
         android:orientation="vertical"
-        android:background="@android:color/white"
-        android:padding="16dp">
+        android:background="@color/cardBackground"
+        android:padding="16dp"
+        android:elevation="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Menu"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="12dp"
+            android:textColor="@color/colorPrimary"/>
 
         <Button
             android:id="@+id/menuAddEmployer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add Employer"
-            android:background="#7FFF00"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"/>
+            style="@style/RoundedButton"
+            android:text="Add Employer"/>
 
         <Button
             android:id="@+id/openCalculatorButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Hesap Makinesi"
-            android:onClick="openCalculator"
-            android:background="#7FFF00"
-            android:textColor="@android:color/white"/>
+            style="@style/RoundedButton"
+            android:text="Calculator"
+            android:onClick="openCalculator"/>
 
         <Button
             android:id="@+id/menuCalendar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Calendar"
-            android:background="#7FFF00"
-            android:textColor="@android:color/white"/>
+            style="@style/RoundedButton"
+            android:text="Calendar"/>
 
         <Button
             android:id="@+id/menuIncomplete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tamamlanmayan İşler"
-            android:layout_marginTop="8dp"
-            android:background="#7FFF00"
-            android:textColor="@android:color/white"/>
+            style="@style/RoundedButton"
+            android:text="Incomplete Jobs"
+            android:layout_marginTop="8dp"/>
 
         <Button
             android:id="@+id/menuHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="History"
-            android:background="#7FFF00"
-            android:textColor="@android:color/white"/>
+            style="@style/RoundedButton"
+            android:text="History"/>
 
-        <!-- Esnek boşluk: TOTAL en alta yapışsın -->
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -128,7 +127,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#DDDDDD"
+            android:background="@color/dividerColor"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
@@ -146,7 +145,8 @@
                 android:text="TOTAL"
                 android:textStyle="bold"
                 android:textSize="16sp"
-                android:layout_marginEnd="8dp"/>
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/textSecondary"/>
 
             <TextView
                 android:id="@+id/menuTotalValue"
@@ -154,7 +154,9 @@
                 android:layout_height="wrap_content"
                 android:text="₺ 0.00"
                 android:textStyle="bold"
-                android:textSize="16sp"/>
+                android:textSize="16sp"
+                android:textColor="@color/colorPrimaryDark"/>
         </LinearLayout>
     </LinearLayout>
+
 </androidx.drawerlayout.widget.DrawerLayout>

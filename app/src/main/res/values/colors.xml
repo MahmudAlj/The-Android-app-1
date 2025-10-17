@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#7FFF00</color>
-    <color name="colorPrimaryDark">#6AE000</color>
-    <color name="colorAccent">#7FFF00</color>
-    <color name="colorBackground">#FFFFFF</color>
-    <color name="colorText">#000000</color>
+    <!-- Ana Tema Renkleri -->
+    <color name="colorPrimary">#4CAF50</color> <!-- Modern yeşil -->
+    <color name="colorPrimaryDark">#388E3C</color> <!-- Daha koyu ton -->
+    <color name="colorAccent">#FFC107</color> <!-- Sarı vurgular -->
+
+    <!-- Arka plan ve metin renkleri -->
+    <color name="backgroundLight">#F9F9F9</color>
+    <color name="cardBackground">#FFFFFF</color>
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#616161</color>
+    <color name="dividerColor">#E0E0E0</color>
+
+    <!-- Buton renkleri -->
+    <color name="buttonText">#FFFFFF</color>
+    <color name="buttonShadow">#A5D6A7</color>
+
+    <!-- Hatalar ve uyarılar -->
+    <color name="errorColor">#E53935</color>
+    <color name="successColor">#43A047</color>
 </resources>

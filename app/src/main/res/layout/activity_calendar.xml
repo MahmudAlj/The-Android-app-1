@@ -5,19 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="16dp"
+    android:background="@color/backgroundLight">
 
+    <!-- Üst Başlık -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingBottom="8dp">
+        android:gravity="center_vertical"
+        android:paddingBottom="12dp">
 
         <Button
             android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Geri" />
+            style="@style/RoundedButton"
+            android:background="@drawable/rounded_button_outline"
+            android:text="← Geri"
+            android:textColor="@color/colorPrimary" />
 
         <TextView
             android:id="@+id/txtTitle"
@@ -26,38 +30,57 @@
             android:layout_weight="1"
             android:paddingStart="12dp"
             android:text="Takvim"
-            android:textSize="18sp" />
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimaryDark" />
     </LinearLayout>
 
+    <!-- Takvim Görünümü -->
     <com.prolificinteractive.materialcalendarview.MaterialCalendarView
         android:id="@+id/materialCalendar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:mcv_showOtherDates="all"
         app:mcv_firstDayOfWeek="monday"
-        app:mcv_arrowColor="#000000" />
+        app:mcv_selectionColor="@color/colorPrimary"
+        app:mcv_arrowColor="@color/colorPrimaryDark"
+        android:layout_marginBottom="12dp"
+        android:background="@color/cardBackground"
+        android:elevation="4dp"
+        android:padding="8dp" />
 
+    <!-- Seçilen Gün Bilgisi -->
     <TextView
         android:id="@+id/txtSelectedDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:text="Bir gün seçin"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@color/textPrimary" />
 
+    <!-- Gün Özeti -->
     <TextView
         android:id="@+id/txtSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="4dp"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/textSecondary"
+        android:textSize="14sp" />
 
+    <!-- İşveren Listesi -->
     <ListView
         android:id="@+id/listEmployers"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:dividerHeight="8dp"
-        android:paddingTop="8dp" />
+        android:divider="@color/dividerColor"
+        android:dividerHeight="1dp"
+        android:background="@color/cardBackground"
+        android:padding="8dp"
+        android:elevation="3dp"
+        android:layout_marginTop="12dp" />
 
 </LinearLayout>

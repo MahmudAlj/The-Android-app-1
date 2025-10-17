@@ -119,8 +119,6 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-
-
     @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
@@ -273,7 +271,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     // UZUN BAS MENÜSÜ: DÜZENLE / SİL
     private fun showJobActionsDialog(employer: Employer, job: Job) {
         val options = arrayOf("Düzenle", "Sil", "İptal")
@@ -394,8 +391,6 @@ class MainActivity : AppCompatActivity() {
         cursor.close()
     }
 
-
-
     private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
         val jobs = mutableListOf<Job>()
         val cursor = db.query("Jobs", null, "employer_id = ?", arrayOf(employerId.toString()), null, null, null)
@@ -430,8 +425,6 @@ class MainActivity : AppCompatActivity() {
         }
         return db.insert("Employers", null, values)
     }
-
-
 
     private fun addJobToDatabase(
         employerId: Long,
@@ -606,7 +599,6 @@ class MainActivity : AppCompatActivity() {
                     displayIncompleteJobs()
                 }
             }
-
 
             actions.addView(markDone, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             actions.addView(deleteBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
