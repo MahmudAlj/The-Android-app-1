@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">My Applicationennew</string>
+
+    <string name="menu_button_description">Menu button</string>
 </resources>

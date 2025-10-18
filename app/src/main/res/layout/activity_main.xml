@@ -35,12 +35,14 @@
 
             <ImageButton
                 android:id="@+id/menuButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@android:drawable/ic_menu_more"
-                android:contentDescription="Menu"
-                android:background="@android:color/transparent"
-                android:tint="@color/buttonText"/>
+                android:contentDescription="@string/menu_button_description"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                app:tint="@color/buttonText" />
+
         </LinearLayout>
 
         <!-- Liste Alanı -->
