@@ -46,6 +46,8 @@
         </LinearLayout>
 
         <!-- Liste Alanı -->
+
+        <!-- Alt Menü (Bottom Navigation) -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -56,12 +58,11 @@
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:dividerPadding="8dp"
                 android:orientation="vertical"
-                android:padding="12dp"
-                android:dividerPadding="8dp"/>
+                android:padding="12dp" />
         </ScrollView>
 
-        <!-- Alt Menü (Bottom Navigation) -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNav"
             android:layout_width="match_parent"
