@@ -42,12 +42,9 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="4dp"
                 app:tint="@color/buttonText" />
-
         </LinearLayout>
 
         <!-- Liste Alanı -->
-
-        <!-- Alt Menü (Bottom Navigation) -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -58,11 +55,12 @@
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:dividerPadding="8dp"
                 android:orientation="vertical"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:dividerPadding="8dp" />
         </ScrollView>
 
+        <!-- Alt Menü (Bottom Navigation) -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNav"
             android:layout_width="match_parent"
@@ -72,7 +70,7 @@
             app:itemTextColor="@color/colorPrimary"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu"
-            android:elevation="8dp"/>
+            android:elevation="8dp" />
     </LinearLayout>
 
     <!-- Sağdan açılan Menü -->
@@ -93,34 +91,34 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:paddingBottom="12dp"
-            android:textColor="@color/colorPrimary"/>
+            android:textColor="@color/colorPrimary" />
 
         <Button
             android:id="@+id/menuAddEmployer"
             style="@style/RoundedButton"
-            android:text="Add Employer"/>
+            android:text="Add Employer" />
 
         <Button
             android:id="@+id/openCalculatorButton"
             style="@style/RoundedButton"
             android:text="Calculator"
-            android:onClick="openCalculator"/>
+            android:onClick="openCalculator" />
 
         <Button
             android:id="@+id/menuCalendar"
             style="@style/RoundedButton"
-            android:text="Calendar"/>
+            android:text="Calendar" />
 
         <Button
             android:id="@+id/menuIncomplete"
             style="@style/RoundedButton"
             android:text="Incomplete Jobs"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp" />
 
         <Button
             android:id="@+id/menuHistory"
             style="@style/RoundedButton"
-            android:text="History"/>
+            android:text="History" />
 
         <View
             android:layout_width="match_parent"
@@ -130,9 +128,8 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/dividerColor"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"/>
+            android:background="@color/dividerColor" />
+
 
         <!-- TOTAL alanı -->
         <LinearLayout
@@ -149,7 +146,7 @@
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:layout_marginEnd="8dp"
-                android:textColor="@color/textSecondary"/>
+                android:textColor="@color/textSecondary" />
 
             <TextView
                 android:id="@+id/menuTotalValue"
@@ -158,8 +155,7 @@
                 android:text="₺ 0.00"
                 android:textStyle="bold"
                 android:textSize="16sp"
-                android:textColor="@color/colorPrimaryDark"/>
+                android:textColor="@color/colorPrimaryDark" />
         </LinearLayout>
     </LinearLayout>
-
 </androidx.drawerlayout.widget.DrawerLayout>

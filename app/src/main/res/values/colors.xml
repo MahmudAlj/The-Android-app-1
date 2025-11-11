@@ -1,22 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Ana Tema Renkleri -->
-    <color name="colorPrimary">#4CAF50</color> <!-- Modern yeşil -->
-    <color name="colorPrimaryDark">#388E3C</color> <!-- Daha koyu ton -->
-    <color name="colorAccent">#FFC107</color> <!-- Sarı vurgular -->
-
-    <!-- Arka plan ve metin renkleri -->
-    <color name="backgroundLight">#F9F9F9</color>
-    <color name="cardBackground">#FFFFFF</color>
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#616161</color>
-    <color name="dividerColor">#E0E0E0</color>
-
-    <!-- Buton renkleri -->
+    <color name="colorPrimary">#4CAF50</color>
+    <color name="colorPrimaryDark">#388E3C</color>
     <color name="buttonText">#FFFFFF</color>
-    <color name="buttonShadow">#A5D6A7</color>
-
-    <!-- Hatalar ve uyarılar -->
-    <color name="errorColor">#E53935</color>
-    <color name="successColor">#43A047</color>
+    <color name="backgroundLight">#FFFFFF</color>
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#757575</color>
+    <color name="dividerColor">#DDDDDD</color>
+    <color name="cardBackground">#FAFAFA</color>
 </resources>

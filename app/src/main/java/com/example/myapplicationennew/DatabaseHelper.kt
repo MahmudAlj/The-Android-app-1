@@ -38,18 +38,16 @@ class DatabaseHelper(context: Context) :
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(
-            """
-        CREATE TABLE Employersğ (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            dateAdded TEXT,
-            isDeleted INTEGER DEFAULT 0,
-            autoApprove INTEGER DEFAULT 0   
-             
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS Employers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                dateAdded TEXT,
+                isDeleted INTEGER DEFAULT 0,
+                autoApprove INTEGER DEFAULT 0
         )
-        """.trimIndent()
-        )
+        """.trimIndent())
+
 
         db.execSQL(
             """
