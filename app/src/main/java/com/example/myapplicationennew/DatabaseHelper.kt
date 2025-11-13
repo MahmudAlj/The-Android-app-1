@@ -30,6 +30,13 @@ class DatabaseHelper(context: Context) :
         const val JOB_DATE_ADDED = "dateAdded"
         const val JOB_IS_DONE = "isDone"
         const val JOB_IS_DELETED = "isDeleted"
+
+        const val TBL_EXPENSES = "Expenses"
+        const val EXP_ID = "id"
+        const val EXP_NAME = "name"
+        const val EXP_AMOUNT = "amount"
+        const val EXP_DATE = "dateAdded"
+
     }
 
     override fun onConfigure(db: SQLiteDatabase) {
@@ -64,6 +71,15 @@ class DatabaseHelper(context: Context) :
         )
         """.trimIndent()
         )
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS $TBL_EXPENSES (
+                $EXP_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $EXP_NAME TEXT,
+                $EXP_AMOUNT REAL,
+                $EXP_DATE TEXT
+       )
+   """)
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -171,6 +187,24 @@ class DatabaseHelper(context: Context) :
         cursor.close()
         return employers
     }
+
+    fun addExpense(name: String, amount: Double, date: String) {
+        val cv = ContentValues()
+        cv.put(EXP_NAME, name)
+        cv.put(EXP_AMOUNT, amount)
+        cv.put(EXP_DATE, date)
+        writableDatabase.insert(TBL_EXPENSES, null, cv)
+    }
+
+    fun getTotalExpenses(): Double {
+        readableDatabase.rawQuery(
+            "SELECT COALESCE(SUM($EXP_AMOUNT), 0) FROM $TBL_EXPENSES",
+            null
+        ).use { c ->
+            return if (c.moveToFirst()) c.getDouble(0) else 0.0
+        }
+    }
+
 
 
 }
