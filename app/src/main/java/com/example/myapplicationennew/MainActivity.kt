@@ -36,6 +36,26 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNav)
+
+        bottomNav.setOnNavigationItemSelectedListener { item ->
+            when(item.itemId) {
+                R.id.nav_home -> {
+                    displayEmployers()
+                    true
+                }
+                R.id.nav_calendar -> {
+                    startActivity(Intent(this, CalendarActivity::class.java))
+                    true
+                }
+                R.id.nav_history -> {
+                    startActivity(Intent(this, HistoryActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+
         dbHelper = DatabaseHelper(this)
         db = dbHelper.writableDatabase
 
