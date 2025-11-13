@@ -4,16 +4,22 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Intent
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: SQLiteDatabase
     private lateinit var dbHelper: DatabaseHelper
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -54,6 +61,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+        findViewById<Button>(R.id.menuAddExpense).setOnClickListener {
+            showExpenseDialog()
         }
 
         dbHelper = DatabaseHelper(this)
@@ -289,21 +299,6 @@ class MainActivity : AppCompatActivity() {
             card.addView(check)
             linearLayout.addView(card)
         }
-    }
-
-    // UZUN BAS MENÜSÜ: DÜZENLE / SİL
-    private fun showJobActionsDialog(employer: Employer, job: Job) {
-        val options = arrayOf("Düzenle", "Sil", "İptal")
-        AlertDialog.Builder(this)
-            .setTitle(job.name)
-            .setItems(options) { dialog, which ->
-                when (which) {
-                    0 -> showEditJobDialog(employer, job)
-                    1 -> softDeleteJob(job, employer)
-                    else -> dialog.dismiss()
-                }
-            }
-            .show()
     }
 
     // İŞ DÜZENLEME DİYALOĞU
