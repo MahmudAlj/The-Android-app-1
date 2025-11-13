@@ -385,11 +385,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // ---------- TOTAL ----------
     private fun updateTotalInDrawer() {
-        val sum = dbHelper.getTotalEarned() // sadece isDone=1, isDeleted=0
-        totalText?.text = "₺ " + String.format(Locale.getDefault(), "%.2f", sum)
+        val income = dbHelper.getTotalEarned()
+        val expenses = dbHelper.getTotalExpenses()
+        val net = income - expenses
+        totalText?.text = "₺ " + String.format(Locale.getDefault(), "%.2f", net)
     }
+
 
     // ---------- DB ----------
     private fun loadEmployersFromDatabase() {
@@ -501,10 +503,39 @@ class MainActivity : AppCompatActivity() {
         return dateFormat.format(Date())
     }
 
+
+    private fun showExpenseDialog() {
+        val layout = layoutInflater.inflate(R.layout.input_dialog_layout, null)
+
+        val name = layout.findViewById<EditText>(R.id.textnameWork)
+        val money = layout.findViewById<EditText>(R.id.TextMoney)
+
+        AlertDialog.Builder(this)
+            .setTitle("Add Expense")
+            .setView(layout)
+            .setPositiveButton("Add") { dialog, _ ->
+                val expName = name.text.toString().trim()
+                val amount = money.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+
+                dbHelper.addExpense(expName, amount, getCurrentDate())
+                updateTotalInDrawer()
+
+                Toast.makeText(this, "Expense Added", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         db.close()
     }
+
+
+
+
+
 
     // ---------- Hesap Makinesi ----------
     fun openCalculator(view: View) {
