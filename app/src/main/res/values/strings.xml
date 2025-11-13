@@ -2,5 +2,6 @@
     <string name="app_name">yonet</string>
 
     <string name="menu_button_description">Menu Button</string>
+    <string name="employer_list">Employer List</string>
 
 </resources>
