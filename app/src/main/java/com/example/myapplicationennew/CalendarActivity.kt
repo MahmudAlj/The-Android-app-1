@@ -1,19 +1,20 @@
 package com.example.myapplicationennew
 
 import android.os.Bundle
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.ListView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import com.prolificinteractive.materialcalendarview.CalendarDay
 import com.prolificinteractive.materialcalendarview.DayViewDecorator
 import com.prolificinteractive.materialcalendarview.DayViewFacade
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener
 import com.prolificinteractive.materialcalendarview.spans.DotSpan
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-
-
 
 class CalendarActivity : AppCompatActivity() {
 
@@ -21,116 +22,86 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var txtSelectedDate: TextView
     private lateinit var txtSummary: TextView
     private lateinit var listEmployers: ListView
-    private lateinit var db: DatabaseHelper
+    private lateinit var dbHelper: DatabaseHelper
 
-    // Uygulamada kullanılan format: "dd MMMM yyyy"
     private val fmtDefault = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
     private val fmtTr = SimpleDateFormat("dd MMMM yyyy", Locale("tr", "TR"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_calendar) // :contentReference[oaicite:2]{index=2}
+        setContentView(R.layout.activity_calendar)
 
-        db = DatabaseHelper(this)
-
-        findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
         calendar = findViewById(R.id.materialCalendar)
         txtSelectedDate = findViewById(R.id.txtSelectedDate)
         txtSummary = findViewById(R.id.txtSummary)
         listEmployers = findViewById(R.id.listEmployers)
+        dbHelper = DatabaseHelper(this)
 
-        // 1) Takvime noktaları yükle
-        decorateCalendarDots()
+        val btnBack: Button = findViewById(R.id.btnBack)
+        btnBack.setOnClickListener { finish() }
 
-        // 2) Başlangıçta bugün seçili gibi davran
+        decorateCalendar()
+
+        calendar.setOnDateChangedListener(OnDateSelectedListener { _, date, _ ->
+            onDateSelected(date)
+        })
+
         val today = CalendarDay.today()
         calendar.selectedDate = today
-        loadDay(today)
-
-        // 3) Gün seçimi
-        calendar.setOnDateChangedListener(OnDateSelectedListener { _, date, _ ->
-            loadDay(date)
-        })
+        onDateSelected(today)
     }
 
-    override fun onResume() {
-        super.onResume()
-        // MainActivity'de yeni işveren ekledikten geri dönünce noktaları tazele
-        decorateCalendarDots()
-        calendar.selectedDate?.let { loadDay(it) }
-    }
-
-    /** Veritabanından (isDeleted=0) işveren sayısı olan günleri çekip noktaları basar. */
-    private fun decorateCalendarDots() {
-        val countsByDate = db.getEmployerCountsByDate() // "dd MMMM yyyy" -> count
-        calendar.removeDecorators()
-
-        if (countsByDate.isEmpty()) return
-
-        val daysWithEvents = mutableSetOf<CalendarDay>()
-        for ((dateStr, _) in countsByDate) {
-            val date = parseDaySafely(dateStr) ?: continue
-            val cal = Calendar.getInstance().apply { time = date }
-            daysWithEvents.add(
-                CalendarDay.from(
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH) + 1,   // MCV 1-12 bekler
-                    cal.get(Calendar.DAY_OF_MONTH)
-                )
-            )
-        }
-        calendar.addDecorator(EventDotDecorator(daysWithEvents))
-    }
-
-    /** Seçilen günün işverenlerini yükle ve listele. */
-    private fun loadDay(day: CalendarDay) {
+    private fun onDateSelected(day: CalendarDay) {
         val cal = Calendar.getInstance().apply {
-            set(Calendar.YEAR, day.year)
-            set(Calendar.MONTH, day.month - 1) // Calendar 0-11 bekler
-            set(Calendar.DAY_OF_MONTH, day.day)
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(day.year, day.month - 1, day.day)
         }
         val dateStr = fmtDefault.format(cal.time)
-        txtSelectedDate.text = "Seçilen gün: $dateStr"
+        txtSelectedDate.text = dateStr
 
-        // Bu fonksiyon List<String> döndürüyor (sadece isimler)
-        val employers: List<String> = db.getEmployersAddedOn(dateStr)
-
-        txtSummary.text = if (employers.isEmpty()) {
-            "Bu günde eklenmiş işveren yok."
+        val employers = dbHelper.getEmployersAddedOn(dateStr)
+        if (employers.isEmpty()) {
+            txtSummary.text = "Bu tarihte eklenen işveren yok."
         } else {
-            "Bu günde eklenen işveren sayısı: ${employers.size}"
+            txtSummary.text = "Bu tarihte eklenen işveren sayısı: ${employers.size}"
         }
 
-        // Artık map { it.name } YOK — direkt listeyi veriyoruz
-        listEmployers.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            employers
-        )
-
-        listEmployers.setOnItemClickListener { _, _, position, _ ->
-            val name = employers[position]  // e.name yerine direkt string
-            Toast.makeText(this, "İşveren: $name", Toast.LENGTH_SHORT).show()
-            // İstersen burada name ile arama yapıp detay açabilirsin.
-        }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, employers)
+        listEmployers.adapter = adapter
     }
 
+    private fun decorateCalendar() {
+        val countsByDate = dbHelper.getEmployerCountsByDate()
+        val daysWithEmployers = mutableSetOf<CalendarDay>()
 
-    /** "dd MMMM yyyy" parse - cihaz dili ve TR denemesiyle güvenli. */
-    private fun parseDaySafely(dateStr: String): Date? {
+        for ((dateStr, _) in countsByDate) {
+            parseDate(dateStr)?.let { date ->
+                val cal = Calendar.getInstance().apply { time = date }
+                val day = CalendarDay.from(cal)
+                daysWithEmployers.add(day)
+            }
+        }
+
+        calendar.addDecorator(EventDotDecorator(daysWithEmployers))
+    }
+
+    private fun parseDate(dateStr: String): Date? {
         return try {
             fmtDefault.parse(dateStr)
         } catch (_: ParseException) {
-            try { fmtTr.parse(dateStr) } catch (_: ParseException) { null }
-        } catch (_: Exception) { null }
+            try {
+                fmtTr.parse(dateStr)
+            } catch (_: ParseException) {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
-    /** Nokta dekoratörü: verilen günlere birer dot çizer. */
     private class EventDotDecorator(private val days: Set<CalendarDay>) : DayViewDecorator {
         override fun shouldDecorate(day: CalendarDay): Boolean = days.contains(day)
         override fun decorate(view: DayViewFacade) {
-            view.addSpan(DotSpan(8f)) // 8dp çapında nokta
+            view.addSpan(DotSpan(8f))
         }
     }
 }

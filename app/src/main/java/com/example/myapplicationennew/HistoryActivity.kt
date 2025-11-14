@@ -1,6 +1,7 @@
 package com.example.myapplicationennew
 
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -21,9 +22,8 @@ class HistoryActivity : AppCompatActivity() {
         listContainer = findViewById(R.id.historyListContainer)
         emptyText = findViewById(R.id.historyEmptyText)
 
-        findViewById<Button>(R.id.historyBackBtn).setOnClickListener { finish() }
-
-        populateList()
+        val btnBack: Button = findViewById(R.id.historyBackBtn)
+        btnBack.setOnClickListener { finish() }
     }
 
     override fun onResume() {
@@ -38,15 +38,15 @@ class HistoryActivity : AppCompatActivity() {
         dbHelper.getDeletedJobs().use { c ->
             while (c.moveToNext()) {
                 val id = c.getInt(0)
-                val name = c.getString(1) ?: "—"
-                val amt = c.getDouble(2)
-                val emp = c.getString(3) ?: "—"
-                items += HistoryItem(id, name, amt, emp)
+                val name = c.getString(1)
+                val amount = c.getDouble(2)
+                val employerName = c.getString(3) ?: "Unknown"
+                items.add(HistoryItem(id, name, amount, employerName))
             }
         }
 
         if (items.isEmpty()) {
-            emptyText.text = "Silinmiş iş yok."
+            emptyText.text = "Silinmiş iş bulunmuyor."
             emptyText.visibility = android.view.View.VISIBLE
             return
         } else {
@@ -57,41 +57,51 @@ class HistoryActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(16, 16, 16, 16)
-                setBackgroundResource(R.drawable.rounded_button)
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                params.setMargins(16, 12, 16, 12)
-                layoutParams = params
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 16
+                }
+                setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
             }
 
             val title = TextView(this).apply {
-                text = "${item.name} • ₺${String.format("%.2f", item.amount)}  (${item.employer})"
+                text = "${item.name} • ₺${item.amount} (${item.employer})"
                 textSize = 16f
             }
+
             val actions = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
             }
+
             val restoreBtn = Button(this).apply {
                 text = "Geri Yükle"
                 setOnClickListener {
                     dbHelper.restoreJob(item.id)
+                    Toast.makeText(this@HistoryActivity, "İş geri yüklendi", Toast.LENGTH_SHORT).show()
                     populateList()
-                    Toast.makeText(this@HistoryActivity, "Geri yüklendi", Toast.LENGTH_SHORT).show()
                 }
             }
+
             val deleteBtn = Button(this).apply {
                 text = "Kalıcı Sil"
                 setOnClickListener {
                     dbHelper.hardDeleteJob(item.id)
+                    Toast.makeText(this@HistoryActivity, "İş kalıcı olarak silindi", Toast.LENGTH_SHORT).show()
                     populateList()
-                    Toast.makeText(this@HistoryActivity, "Kalıcı silindi", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            actions.addView(restoreBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-            actions.addView(deleteBtn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            actions.addView(
+                restoreBtn,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            )
+            actions.addView(
+                deleteBtn,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            )
+
             row.addView(title)
             row.addView(actions)
 

@@ -20,6 +20,25 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// iş eklerken gıder ekleme orda olucak
+// takvımde ıslerenın eklendıgı ısler gozukmesı gerekıyor
+//iş silme uzun tutma
+//hesap makınesı tekrar bakılacak
+// total dogru hesaplanmıyor gıderıde ekleme bır sey olmasın o dırek ıs te bır secenek olsun gıder dıye  ısım gıbı olucak ama totalde eklenıcek - olarak
+// ıs veya ıs verende ayar dıye bır sey olsun onun otomatık onaylama yada sılme orda olsun
+// işlerde sadece ücret ve iş olsun ustune bastıgında dıger detaylar cıksın
+//
+
+
+
+
+
+
+
+
+
+
+
 class MainActivity : AppCompatActivity() {
 
     // --- UI ---
@@ -27,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menuButton: ImageButton
     private lateinit var menuAddEmployer: Button
+    private lateinit var menuAddExpense: Button
     private var menuHistoryBtn: Button? = null
     private var menuCalendarBtn: Button? = null
     private var menuIncompleteBtn: Button? = null   // (opsiyonel) Tamamlanmayan işler
@@ -73,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         drawerLayout   = findViewById(R.id.drawerLayout)
         menuButton     = findViewById(R.id.menuButton)
         menuAddEmployer= findViewById(R.id.menuAddEmployer)
+        menuAddExpense  = findViewById(R.id.menuAddExpense)
         menuHistoryBtn = findViewById(R.id.menuHistory)
         menuCalendarBtn= findViewById(R.id.menuCalendar)
         menuIncompleteBtn = findViewById(R.id.menuIncomplete) // XML'de yoksa null olur, sorun değil
@@ -86,6 +107,10 @@ class MainActivity : AppCompatActivity() {
         }
         menuHistoryBtn?.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
+        }
+        menuAddExpense.setOnClickListener {       // 🔹 yeni
+            showAddExpenseDialog()
+            drawerLayout.closeDrawer(GravityCompat.END)
         }
         menuCalendarBtn?.setOnClickListener {
             startActivity(Intent(this, CalendarActivity::class.java))
@@ -144,6 +169,41 @@ class MainActivity : AppCompatActivity() {
             }
             dialog.dismiss()
         }
+        builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+        builder.show()
+    }
+    private fun showAddExpenseDialog() {
+        val builder = AlertDialog.Builder(this)
+            .setTitle("Add Expense")
+
+        val view = layoutInflater.inflate(R.layout.expense_dialog_layout, null)
+        val editAmount = view.findViewById<EditText>(R.id.editExpenseAmount)
+        val editDesc   = view.findViewById<EditText>(R.id.editExpenseDescription)
+        val editType   = view.findViewById<EditText>(R.id.editExpenseType)
+
+        builder.setView(view)
+
+        builder.setPositiveButton("Save") { dialog, _ ->
+            val amountText = editAmount.text.toString().replace(",", ".").trim()
+            val amount = amountText.toDoubleOrNull()
+            val desc = editDesc.text.toString().trim()
+            val type = editType.text.toString().trim()
+
+            if (amount == null) {
+                Toast.makeText(this, "Amount must be a number", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
+
+            val date = getCurrentDate()
+            dbHelper.addExpense(amount, desc, if (type.isEmpty()) null else type, date)
+
+            ActionLogger.log(this, "Expense added: $amount ₺, $desc")
+            updateTotalInDrawer()
+            Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
+
+            dialog.dismiss()
+        }
+
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
@@ -383,8 +443,12 @@ class MainActivity : AppCompatActivity() {
         val income = dbHelper.getTotalEarned()
         val expenses = dbHelper.getTotalExpenses()
         val net = income - expenses
+
         totalText?.text = "₺ " + String.format(Locale.getDefault(), "%.2f", net)
-    }
+
+     }
+
+
 
 
     // ---------- DB ----------
