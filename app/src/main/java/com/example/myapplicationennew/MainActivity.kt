@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuAddExpense: Button
     private var menuHistoryBtn: Button? = null
     private var menuCalendarBtn: Button? = null
-    private var menuIncompleteBtn: Button? = null   // (opsiyonel) Tamamlanmayan işler
+    private var menuIncompleteBtn: Button? = null   
     private var totalText: TextView? = null
 
     // --- Veri/DB ---
