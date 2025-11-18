@@ -78,6 +78,12 @@ class DatabaseHelper(context: Context) :
             )
             """.trimIndent()
         )
+        db.execSQL(
+            "CREATE TABLE users (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "email TEXT UNIQUE," +
+                    "password TEXT)"
+        )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -251,6 +257,8 @@ class DatabaseHelper(context: Context) :
         }
         writableDatabase.insert(TBL_EXPENSES, null, values)
     }
+    fun addExpense(amount: String, description: Double, type: String) {}
+
     fun getTotalExpenses(): Double {
         readableDatabase.rawQuery(
             "SELECT COALESCE(SUM($EXP_AMOUNT), 0) FROM $TBL_EXPENSES",
@@ -260,9 +268,34 @@ class DatabaseHelper(context: Context) :
         }
     }
 
-    fun addExpense(amount: String, description: Double, type: String) {
 
+    fun registerUser(email: String, password: String): Boolean {
+        val db = this.writableDatabase
+        val values = ContentValues()
+
+        values.put("email", email)
+        values.put("password", password)
+
+        return try {
+            db.insert("users", null, values)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
+
+    fun loginUser(email: String, password: String): Boolean {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT * FROM users WHERE email=? AND password=?",
+            arrayOf(email, password)
+        )
+
+        val exists = cursor.moveToFirst()
+        cursor.close()
+        return exists
+    }
+
 
 
 }
