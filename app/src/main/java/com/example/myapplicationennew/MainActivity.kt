@@ -6,8 +6,13 @@ import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.View
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.CheckBox
+import com.google.android.material.card.MaterialCardView
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -298,14 +303,12 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun displayJobs(employer: Employer) {
+
         linearLayout.removeAllViews()
 
-        // Başlık kısmı
         val addJobBtn = Button(this).apply {
             text = "➕ Yeni İş Ekle"
-            setOnClickListener {
-                showJobInputDialog(employer)
-            }
+            setOnClickListener { showJobInputDialog(employer) }
         }
         linearLayout.addView(addJobBtn)
 
@@ -322,37 +325,99 @@ class MainActivity : AppCompatActivity() {
             text = "👤 ${employer.name} • 📅 ${employer.dateAdded}"
             textSize = 18f
         }
+
         header.addView(backBtn)
         header.addView(title)
         linearLayout.addView(header)
 
         // İş kartları
+        val inflater = LayoutInflater.from(this)
+
         for (job in employer.jobs.filter { !it.isDeleted }) {
-            val card = com.google.android.material.card.MaterialCardView(this).apply {
-                radius = 16f
-                cardElevation = 4f
-                setContentPadding(24, 24, 24, 24)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(16, 12, 16, 12) }
+
+            // XML'den kartı yükle
+            val card = inflater.inflate(R.layout.job_item, linearLayout, false)
+            val check = card.findViewById<CheckBox>(R.id.checkJob)
+
+            check.text =
+                        "🛠 İş: ${job.name}\n" +
+                        "💰 Ücret: ₺${job.moneyhowmuch}\n" +
+                        "📍 Mekan: ${job.place}\n" +
+                        "📝 Açıklama: ${job.description}\n" +
+                        "📅 Tarih: ${job.dateAdded}"
+
+            check.isChecked = job.isDone
+
+            check.setOnCheckedChangeListener { _, checked ->
+                dbHelper.setJobDone(job.id.toInt(), checked)
+                job.isDone = checked
+                updateTotalInDrawer()
             }
 
-            val check = CheckBox(this).apply {
-                text = "🛠 İş: ${job.name}\n💰 Ücret: ₺${job.moneyhowmuch}\n📍 Mekan: ${job.place}\n📝 Açıklama: ${job.description}\n📅 Tarih: ${job.dateAdded}"
-                isChecked = job.isDone
-                setOnCheckedChangeListener { _, checked ->
-                    dbHelper.setJobDone(job.id.toInt(), checked)
-                    job.isDone = checked
-                    updateTotalInDrawer()
-                    displayJobs(employer)
+            // 🔥 Uzun basınca sil
+            card.setOnLongClickListener {
+                softDeleteJob(job, employer)
+                true
+            }
+
+            // 🔥 Kaydırma hareketi
+            var downX = 0f
+            var isSwiping = false
+
+            card.setOnTouchListener { v, event ->
+
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        downX = event.x
+                        isSwiping = false
+                    }
+
+                    MotionEvent.ACTION_MOVE -> {
+                        val deltaX = event.x - downX
+
+                        if (Math.abs(deltaX) > 20) isSwiping = true
+
+                        if (isSwiping) {
+                            v.translationX = deltaX
+                        }
+                    }
+
+                    MotionEvent.ACTION_UP -> {
+                        val deltaX = event.x - downX
+
+                        when {
+                            deltaX > 150 -> {
+                                // sağ kaydırma → tamamlandı
+                                dbHelper.setJobDone(job.id.toInt(), true)
+                                job.isDone = true
+                                check.isChecked = true
+                                updateTotalInDrawer()
+                                Toast.makeText(this, "Tamamlandı ✓", Toast.LENGTH_SHORT).show()
+                            }
+                            deltaX < -150 -> {
+                                // sol kaydırma → tamamlanmadı
+                                dbHelper.setJobDone(job.id.toInt(), false)
+                                job.isDone = false
+                                check.isChecked = false
+                                updateTotalInDrawer()
+                                Toast.makeText(this, "Tamamlanmadı!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        // kartı yerine döndür
+                        v.animate().translationX(0f).setDuration(150).start()
+                    }
                 }
+
+                true
             }
 
-            card.addView(check)
             linearLayout.addView(card)
         }
     }
+
+
+
 
     // İŞ DÜZENLEME DİYALOĞU
     private fun showEditJobDialog(employer: Employer, job: Job) {
