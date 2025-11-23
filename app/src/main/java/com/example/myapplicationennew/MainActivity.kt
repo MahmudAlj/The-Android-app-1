@@ -27,10 +27,10 @@ import java.util.Locale
 // total dogru hesaplanmıyor gıderıde ekleme bır sey olmasın o dırek ıs te bır secenek olsun gıder dıye  ısım gıbı olucak ama totalde eklenıcek - olarak
 // ıs veya ıs verende ayar dıye bır sey olsun onun otomatık onaylama yada sılme orda olsun
 // işlerde sadece ücret ve iş olsun ustune bastıgında dıger detaylar cıksın
+// uc nokta hep gozuksun
 
 // bunlardan baska gırıs sayfası maıl ıle gırıs maıl ıle kaydolus
 // reklamı aarastırma nasıl google playa yuklıyebılırız
-//
 
 
 class MainActivity : AppCompatActivity() {
@@ -583,11 +583,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         db.close()
     }
-
-
-
-
-
 
     // ---------- Hesap Makinesi ----------
     fun openCalculator(view: View) {
