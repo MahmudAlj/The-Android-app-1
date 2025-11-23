@@ -92,6 +92,7 @@ class CalculatorActivity : AppCompatActivity() {
             '-' -> a - b
             'x', '×', '*' -> a * b
             '÷', '/' -> if (b == 0.0) 0.0 else a / b
+            '%' -> a % b
             else -> b
         }
     }
