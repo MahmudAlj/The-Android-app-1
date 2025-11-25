@@ -39,7 +39,6 @@ class DatabaseHelper(context: Context) :
         const val EXP_DATE = "dateAdded"
 
     }
-
     override fun onCreate(db: SQLiteDatabase) {
 
         db.execSQL("""
@@ -85,7 +84,6 @@ class DatabaseHelper(context: Context) :
                     "password TEXT)"
         )
     }
-
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE $TBL_EMPLOYERS ADD COLUMN $EMP_IS_DELETED INTEGER DEFAULT 0;")
@@ -102,9 +100,7 @@ class DatabaseHelper(context: Context) :
         }
         // Yeni migration’lar gerektiğinde buraya eklenir
     }
-
     // --- JOB yardımcı fonksiyonları ---
-
     fun setJobDone(jobId: Int, done: Boolean) {
         val values = ContentValues().apply {
             put(JOB_IS_DONE, if (done) 1 else 0)
@@ -116,7 +112,6 @@ class DatabaseHelper(context: Context) :
             arrayOf(jobId.toString())
         )
     }
-
     fun softDeleteJob(jobId: Int) {
         val values = ContentValues().apply {
             put(JOB_IS_DELETED, 1)
@@ -128,7 +123,6 @@ class DatabaseHelper(context: Context) :
             arrayOf(jobId.toString())
         )
     }
-
     fun softDeleteJobsByEmployer(employerId: Long) {
         val values = ContentValues().apply {
             put(JOB_IS_DELETED, 1)
@@ -140,11 +134,6 @@ class DatabaseHelper(context: Context) :
             arrayOf(employerId.toString())
         )
     }
-
-    /**
-     * Silinmiş işleri (Jobs.isDeleted = 1) işveren ismi ile birlikte döndürür.
-     * Sütunlar: jobId, jobName, jobAmount, employerName
-     */
     fun getDeletedJobs(): Cursor {
         return readableDatabase.rawQuery(
             """
@@ -161,7 +150,6 @@ class DatabaseHelper(context: Context) :
             null
         )
     }
-
     fun restoreJob(jobId: Int) {
         val values = ContentValues().apply {
             put(JOB_IS_DELETED, 0)
@@ -173,7 +161,6 @@ class DatabaseHelper(context: Context) :
             arrayOf(jobId.toString())
         )
     }
-
     fun hardDeleteJob(jobId: Int) {
         writableDatabase.delete(
             TBL_JOBS,
@@ -181,30 +168,31 @@ class DatabaseHelper(context: Context) :
             arrayOf(jobId.toString())
         )
     }
-
-    /**
-     * Tamamlanmış (isDone = 1) ve silinmemiş (isDeleted = 0) tüm işlerin toplam tutarı.
-     */
-    fun getTotalEarned(): Double {
-        readableDatabase.rawQuery(
+    fun getTotalNet(): Double {
+        // 1) Tamamlanmış işler (isDone = 1)
+        val income = readableDatabase.rawQuery(
             """
-            SELECT COALESCE(SUM($JOB_AMOUNT), 0)
-            FROM $TBL_JOBS
-            WHERE $JOB_IS_DONE = 1
-              AND $JOB_IS_DELETED = 0
-            """.trimIndent(),
+        SELECT COALESCE(SUM($JOB_AMOUNT), 0)
+        FROM $TBL_JOBS
+        WHERE $JOB_IS_DELETED = 0
+          AND $JOB_IS_DONE = 1
+        """.trimIndent(),
             null
-        ).use { c ->
-            return if (c.moveToFirst()) c.getDouble(0) else 0.0
-        }
+        ).use { if (it.moveToFirst()) it.getDouble(0) else 0.0 }
+
+        // 2) Giderler tablosu
+        val expenses = readableDatabase.rawQuery(
+            """
+        SELECT COALESCE(SUM($EXP_AMOUNT), 0)
+        FROM $TBL_EXPENSES
+        """.trimIndent(),
+            null
+        ).use { if (it.moveToFirst()) it.getDouble(0) else 0.0 }
+
+        return income - expenses
     }
 
     // --- Takvim ekranı için ---
-
-    /**
-     * Her tarih için eklenen işveren sayısını döndürür.
-     * Ör: "12 Kasım 2025" -> 3
-     */
     fun getEmployerCountsByDate(): Map<String, Int> {
         val result = mutableMapOf<String, Int>()
         readableDatabase.rawQuery(
@@ -226,10 +214,6 @@ class DatabaseHelper(context: Context) :
         }
         return result
     }
-
-    /**
-     * Belirli bir tarihte eklenen işverenlerin isim listesini döndürür.
-     */
     fun getEmployersAddedOn(date: String): List<String> {
         val employers = mutableListOf<String>()
         readableDatabase.rawQuery(
@@ -258,7 +242,6 @@ class DatabaseHelper(context: Context) :
         writableDatabase.insert(TBL_EXPENSES, null, values)
     }
     fun addExpense(amount: String, description: Double, type: String) {}
-
     fun getTotalExpenses(): Double {
         readableDatabase.rawQuery(
             "SELECT COALESCE(SUM($EXP_AMOUNT), 0) FROM $TBL_EXPENSES",
@@ -267,8 +250,6 @@ class DatabaseHelper(context: Context) :
             return if (cursor.moveToFirst()) cursor.getDouble(0) else 0.0
         }
     }
-
-
     fun registerUser(email: String, password: String): Boolean {
         val db = this.writableDatabase
         val values = ContentValues()
@@ -283,7 +264,6 @@ class DatabaseHelper(context: Context) :
             false
         }
     }
-
     fun loginUser(email: String, password: String): Boolean {
         val db = this.readableDatabase
         val cursor = db.rawQuery(
@@ -295,10 +275,5 @@ class DatabaseHelper(context: Context) :
         cursor.close()
         return exists
     }
-
-
-
 }
-
-/** Sadece id + isim gerektiğinde kullanılabilecek basit tip */
 data class EmployerSimple(val id: Long, val name: String)
