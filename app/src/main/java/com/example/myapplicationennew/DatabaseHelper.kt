@@ -191,7 +191,6 @@ class DatabaseHelper(context: Context) :
 
         return income - expenses
     }
-
     // --- Takvim ekranı için ---
     fun getEmployerCountsByDate(): Map<String, Int> {
         val result = mutableMapOf<String, Int>()
@@ -275,5 +274,65 @@ class DatabaseHelper(context: Context) :
         cursor.close()
         return exists
     }
+    fun getJobsAddedOn(date: String): List<Job> {
+        val jobs = mutableListOf<Job>()
+
+        readableDatabase.rawQuery(
+            """
+        SELECT id, employer_id, name, moneyhowmuch, place, description, dateAdded, isDone
+        FROM Jobs
+        WHERE dateAdded = ?
+          AND isDeleted = 0
+        ORDER BY id DESC
+        """,
+            arrayOf(date)
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                val job = Job(
+                    id = cursor.getLong(0),
+                    employerId = cursor.getLong(1),
+                    name = cursor.getString(2),
+                    moneyhowmuch = cursor.getDouble(3),
+                    place = cursor.getString(4),
+                    description = cursor.getString(5),
+                    dateAdded = cursor.getString(6),
+                    isDone = cursor.getInt(7) == 1
+                )
+                jobs.add(job)
+            }
+        }
+        return jobs
+    }
+    fun getJobsAddedOnForEmployer(date: String, employerId: Long): List<Job> {
+        val jobs = mutableListOf<Job>()
+        readableDatabase.rawQuery(
+            """
+        SELECT id, name, moneyhowmuch, place, description, dateAdded, isDone
+        FROM Jobs
+        WHERE dateAdded = ?
+          AND employer_id = ?
+          AND isDeleted = 0
+        ORDER BY id DESC
+        """.trimIndent(),
+            arrayOf(date, employerId.toString())
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                jobs.add(
+                    Job(
+                        id = cursor.getLong(0),
+                        name = cursor.getString(1),
+                        moneyhowmuch = cursor.getDouble(2),
+                        place = cursor.getString(3),
+                        description = cursor.getString(4),
+                        dateAdded = cursor.getString(5),
+                        isDone = cursor.getInt(6) == 1,
+                        isDeleted = false
+                    )
+                )
+            }
+        }
+        return jobs
+    }
+
 }
 data class EmployerSimple(val id: Long, val name: String)

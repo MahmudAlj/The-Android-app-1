@@ -23,7 +23,6 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var txtSummary: TextView
     private lateinit var listEmployers: ListView
     private lateinit var dbHelper: DatabaseHelper
-
     private val fmtDefault = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
     private val fmtTr = SimpleDateFormat("dd MMMM yyyy", Locale("tr", "TR"))
 
@@ -50,10 +49,9 @@ class CalendarActivity : AppCompatActivity() {
         calendar.selectedDate = today
         onDateSelected(today)
     }
-
     private fun onDateSelected(day: CalendarDay) {
         val cal = Calendar.getInstance().apply {
-            set(day.year, day.month - 1, day.day)
+            set(day.year, day.month , day.day)
         }
         val dateStr = fmtDefault.format(cal.time)
         txtSelectedDate.text = dateStr
@@ -67,8 +65,44 @@ class CalendarActivity : AppCompatActivity() {
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, employers)
         listEmployers.adapter = adapter
-    }
+        listEmployers.setOnItemClickListener { _, _, position, _ ->
+            val employerName = employers[position]
+            val employerId = dbHelper.getEmployerIdByName(employerName)
 
+            val jobs = dbHelper.getJobsAddedOnForEmployer(dateStr, employerId)
+
+            if (jobs.isEmpty()) {
+                txtSummary.text = "$employerName için bu tarihte iş yok."
+            } else {
+                val jobNames = jobs.map { "• ${it.name}  (₺${it.moneyhowmuch})" }
+                val jobAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, jobNames)
+                listEmployers.adapter = jobAdapter
+
+                txtSummary.text = "$employerName için ${jobs.size} iş bulundu"
+            }
+        }
+
+        val jobs = dbHelper.getJobsAddedOn(dateStr)
+
+        if (jobs.isEmpty()) {
+            txtSummary.text = "Bu tarihte eklenen iş yok."
+        } else {
+            txtSummary.text = "Bu tarihte eklenen iş sayısı: ${jobs.size}"
+        }
+
+        val jobNames = jobs.map { "${it.name} - ₺${it.moneyhowmuch}" }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, jobNames)
+        listEmployers.adapter = adapter
+
+    }
+    fun getEmployerIdByName(name: String): Long {
+        readableDatabase.rawQuery(
+            "SELECT id FROM Employers WHERE name = ? AND isDeleted = 0 LIMIT 1",
+            arrayOf(name)
+        ).use { c ->
+            return if (c.moveToFirst()) c.getLong(0) else -1
+        }
+    }
     private fun decorateCalendar() {
         val countsByDate = dbHelper.getEmployerCountsByDate()
         val daysWithEmployers = mutableSetOf<CalendarDay>()
@@ -83,7 +117,6 @@ class CalendarActivity : AppCompatActivity() {
 
         calendar.addDecorator(EventDotDecorator(daysWithEmployers))
     }
-
     private fun parseDate(dateStr: String): Date? {
         return try {
             fmtDefault.parse(dateStr)
@@ -97,11 +130,11 @@ class CalendarActivity : AppCompatActivity() {
             null
         }
     }
-
     private class EventDotDecorator(private val days: Set<CalendarDay>) : DayViewDecorator {
         override fun shouldDecorate(day: CalendarDay): Boolean = days.contains(day)
         override fun decorate(view: DayViewFacade) {
             view.addSpan(DotSpan(8f))
         }
     }
+
 }
