@@ -50,7 +50,6 @@ class MainActivity : AppCompatActivity() {
     private var menuCalendarBtn: Button? = null
     private var menuIncompleteBtn: Button? = null
     private var totalText: TextView? = null
-
     // --- Veri/DB ---
     private val employers = mutableListOf<Employer>()
     private lateinit var db: SQLiteDatabase
@@ -124,14 +123,12 @@ class MainActivity : AppCompatActivity() {
         displayEmployers()
         updateTotalInDrawer()
     }
-
     override fun onResume() {
         super.onResume()
         loadEmployersFromDatabase()
         displayEmployers()
         updateTotalInDrawer()
     }
-
     // ---------- İşverenler ----------
     private fun showEmployerInputDialog() {
         val builder = AlertDialog.Builder(this)
@@ -206,7 +203,6 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
-
     @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
@@ -239,8 +235,6 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(card)
         }
     }
-
-
     private fun deleteEmployer(employer: Employer) {
         AlertDialog.Builder(this)
             .setTitle("Delete Employer")
@@ -263,44 +257,58 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-
     // ---------- İşler ----------
     private fun showJobInputDialog(employer: Employer) {
         val builder = AlertDialog.Builder(this)
             .setTitle("${employer.name} - Add New Job")
 
         val inputLayout = layoutInflater.inflate(R.layout.input_dialog_layout, null)
-        val editTextJob = inputLayout.findViewById<EditText>(R.id.textnameWork)
-        val editTextMoney = inputLayout.findViewById<EditText>(R.id.TextMoney)
-        val editTextDescription = inputLayout.findViewById<EditText>(R.id.TextDescription)
-        val editTextPlace = inputLayout.findViewById<EditText>(R.id.TextPlace)
+
+        val jobNameTxt = inputLayout.findViewById<EditText>(R.id.textnameWork)
+        val moneyTxt = inputLayout.findViewById<EditText>(R.id.TextMoney)
+        val placeTxt = inputLayout.findViewById<EditText>(R.id.TextPlace)
+        val descTxt = inputLayout.findViewById<EditText>(R.id.TextDescription)
+        val expenseTxt = inputLayout.findViewById<EditText>(R.id.ExpenseAmount)
         val checkDaily = inputLayout.findViewById<CheckBox>(R.id.checkDaily)
 
         builder.setView(inputLayout)
-        builder.setPositiveButton("Add") { dialog, _ ->
-            val jobName = editTextJob.text.toString().trim()
-            val money = editTextMoney.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-            val desc = editTextDescription.text.toString().trim()
-            val place = editTextPlace.text.toString().trim()
 
-            // ✅ Öncelik işverende autoApprove, yoksa günlük seçeneği
-            val isDoneValue = if (employer.autoApprove) {
-                1
-            } else {
-                if (checkDaily.isChecked) 1 else 0
+        builder.setPositiveButton("Add") { dialog, _ ->
+
+            val name = jobNameTxt.text.toString().trim()
+            val desc = descTxt.text.toString().trim()
+            val place = placeTxt.text.toString().trim()
+
+            val amount = moneyTxt.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+            var expenseAmount = expenseTxt.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+
+            // 🔥 Gider varsa negatif yapıyoruz
+            if (expenseAmount > 0) {
+                expenseAmount = -expenseAmount
             }
-            addJobToDatabase(employer.id, jobName, money, place, desc, isDoneValue)
-            ActionLogger.log(this, "İş eklendi: ${employer.name} • $jobName • ₺$money • $place")
+
+            val isDone = if (checkDaily.isChecked) 1 else 0
+
+            // 🔥 Job kaydı
+            addJobToDatabase(
+                employer.id,
+                name,
+                amount + expenseAmount,  // toplam iş tutarı + gider
+                place,
+                desc,
+                isDone
+            )
+
             refreshEmployerJobs(employer)
             displayJobs(employer)
+            updateTotalInDrawer()
+
             dialog.dismiss()
         }
+
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
-
-
-
     @SuppressLint("SetTextI18n")
     private fun displayJobs(employer: Employer) {
 
@@ -408,17 +416,12 @@ class MainActivity : AppCompatActivity() {
                         v.animate().translationX(0f).setDuration(150).start()
                     }
                 }
-
                 true
             }
 
             linearLayout.addView(card)
         }
     }
-
-
-
-
     // İŞ DÜZENLEME DİYALOĞU
     private fun showEditJobDialog(employer: Employer, job: Job) {
         val builder = AlertDialog.Builder(this)
@@ -475,7 +478,6 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
-
     // İŞİ SOFT DELETE
     private fun softDeleteJob(job: Job, employer: Employer) {
         AlertDialog.Builder(this)
@@ -497,19 +499,10 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Vazgeç", null)
             .show()
     }
-
     private fun updateTotalInDrawer() {
-        val income = dbHelper.getTotalEarned()
-        val expenses = dbHelper.getTotalExpenses()
-        val net = income - expenses
-
+        val net = dbHelper.getTotalNet()
         totalText?.text = "₺ " + String.format(Locale.getDefault(), "%.2f", net)
-
-     }
-
-
-
-
+    }
     // ---------- DB ----------
     private fun loadEmployersFromDatabase() {
         val cursor = db.query("Employers", null, null, null, null, null, null)
@@ -529,7 +522,6 @@ class MainActivity : AppCompatActivity() {
         }
         cursor.close()
     }
-
     private fun loadJobsForEmployer(employerId: Long): MutableList<Job> {
         val jobs = mutableListOf<Job>()
         val cursor = db.query("Jobs", null, "employer_id = ?", arrayOf(employerId.toString()), null, null, null)
@@ -553,7 +545,6 @@ class MainActivity : AppCompatActivity() {
         cursor.close()
         return jobs
     }
-
     private fun addEmployerToDatabase(name: String, autoApprove: Boolean): Long {
         val date = getCurrentDate()
         val values = ContentValues().apply {
@@ -564,15 +555,7 @@ class MainActivity : AppCompatActivity() {
         }
         return db.insert("Employers", null, values)
     }
-
-    private fun addJobToDatabase(
-        employerId: Long,
-        name: String,
-        moneyhowmuch: Double,
-        place: String,
-        description: String,
-        isDoneValue: Int
-    ) {
+    private fun addJobToDatabase(employerId: Long, name: String, moneyhowmuch: Double, place: String, description: String, isDoneValue: Int) {
         val date = getCurrentDate()
         val values = ContentValues().apply {
             put("employer_id", employerId)
@@ -587,7 +570,6 @@ class MainActivity : AppCompatActivity() {
         db.insert("Jobs", null, values)
         updateTotalInDrawer()
     }
-
     private fun updateJobInDatabase(jobId: Long, name: String, moneyhowmuch: Double, place: String, description: String): Int {
         val values = ContentValues().apply {
             put("name", name)
@@ -597,30 +579,24 @@ class MainActivity : AppCompatActivity() {
         }
         return db.update("Jobs", values, "id = ?", arrayOf(jobId.toString()))
     }
-
     // SOFT DELETE: Jobs -> isDeleted=1
     private fun softDeleteJobInDatabase(jobId: Long): Int {
         dbHelper.softDeleteJob(jobId.toInt())
         return 1
     }
-
     // SOFT DELETE: Employers -> isDeleted=1
     private fun softDeleteEmployerInDatabase(employerId: Long): Int {
         val cv = ContentValues().apply { put("isDeleted", 1) }
         return db.update("Employers", cv, "id = ?", arrayOf(employerId.toString()))
     }
-
     private fun refreshEmployerJobs(employer: Employer) {
         employer.jobs.clear()
         employer.jobs.addAll(loadJobsForEmployer(employer.id))
     }
-
     private fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
         return dateFormat.format(Date())
     }
-
-
     private fun showExpenseDialog() {
         val layout = layoutInflater.inflate(R.layout.input_dialog_layout, null)
 
@@ -643,17 +619,14 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-
     override fun onDestroy() {
         super.onDestroy()
         db.close()
     }
-
     // ---------- Hesap Makinesi ----------
     fun openCalculator(view: View) {
         startActivity(Intent(this, CalculatorActivity::class.java))
     }
-
     // ---------- Tamamlanmayan İşler (opsiyonel) ----------
     @SuppressLint("SetTextI18n")
     private fun displayIncompleteJobs() {
@@ -773,7 +746,6 @@ class MainActivity : AppCompatActivity() {
             linearLayout.addView(card)
         }
     }
-
 }
 
 // --- Veri sınıfları ---
