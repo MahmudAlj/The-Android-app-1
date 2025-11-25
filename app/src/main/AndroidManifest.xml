@@ -13,9 +13,9 @@
         android:theme="@style/Theme.MyApplicationennew"
         tools:targetApi="34">
 
-        <!-- 🔹 Ana açılış ekranı -->
+        <!-- 🔹 Login ilk açılacak -->
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +23,12 @@
             </intent-filter>
         </activity>
 
-        <!-- 🔸 Diğer activity'ler -->
+        <!-- 🔹 MainActivity BURAYA EKLENMELİ -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
+
+        <!-- 🔸 Diğer Activityler -->
         <activity android:name=".CalculatorActivity" android:exported="true" />
         <activity android:name=".HistoryActivity" android:exported="false" />
         <activity android:name=".CalendarActivity" android:exported="false" />
