@@ -1,42 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+    android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/textnameWork"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="The Work Name" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <EditText
-        android:id="@+id/TextMoney"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="How Much"
-        android:inputType="numberDecimal" />
+        <!-- Work Name -->
+        <EditText
+            android:id="@+id/textnameWork"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="The Work Name" />
 
-    <EditText
-        android:id="@+id/TextPlace"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="place" />
+        <!-- How Much (Kazanç) -->
+        <EditText
+            android:id="@+id/TextMoney"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="How Much"
+            android:inputType="numberDecimal" />
 
-    <EditText
-        android:id="@+id/TextDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Description" />
-    <CheckBox
-        android:id="@+id/checkDaily"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Günlük iş (otomatik onaylansın)" />
+        <!-- Place -->
+        <EditText
+            android:id="@+id/TextPlace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Place" />
 
+        <!-- Description -->
+        <EditText
+            android:id="@+id/TextDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description" />
 
-</LinearLayout>
+        <!-- Expense Amount (Gider) -->
+        <EditText
+            android:id="@+id/ExpenseAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Expense Amount"
+            android:inputType="numberDecimal" />
+
+        <!-- Günlük İş -->
+        <CheckBox
+            android:id="@+id/checkDaily"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Günlük iş (otomatik onaylansın)" />
+
+    </LinearLayout>
+</ScrollView>
