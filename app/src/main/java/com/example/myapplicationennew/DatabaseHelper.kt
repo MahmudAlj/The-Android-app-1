@@ -303,36 +303,46 @@ class DatabaseHelper(context: Context) :
         }
         return jobs
     }
+    fun getEmployerIdByName(name: String): Long {
+        readableDatabase.rawQuery(
+            "SELECT id FROM Employers WHERE name = ? AND isDeleted = 0 LIMIT 1",
+            arrayOf(name)
+        ).use { c ->
+            return if (c.moveToFirst()) c.getLong(0) else -1
+        }
+    }
+
     fun getJobsAddedOnForEmployer(date: String, employerId: Long): List<Job> {
-        val jobs = mutableListOf<Job>()
+        val list = mutableListOf<Job>()
+
         readableDatabase.rawQuery(
             """
-        SELECT id, name, moneyhowmuch, place, description, dateAdded, isDone
+        SELECT id, name, moneyhowmuch, dateAdded
         FROM Jobs
-        WHERE dateAdded = ?
-          AND employer_id = ?
-          AND isDeleted = 0
-        ORDER BY id DESC
+        WHERE employer_id = ? AND dateAdded = ? AND isDeleted = 0
         """.trimIndent(),
-            arrayOf(date, employerId.toString())
-        ).use { cursor ->
-            while (cursor.moveToNext()) {
-                jobs.add(
+            arrayOf(employerId.toString(), date)
+        ).use { c ->
+            while (c.moveToNext()) {
+                list.add(
                     Job(
-                        id = cursor.getLong(0),
-                        name = cursor.getString(1),
-                        moneyhowmuch = cursor.getDouble(2),
-                        place = cursor.getString(3),
-                        description = cursor.getString(4),
-                        dateAdded = cursor.getString(5),
-                        isDone = cursor.getInt(6) == 1,
-                        isDeleted = false
+                        c.getLong(0),
+                        employerId,
+                        c.getString(1),
+                        c.getDouble(2),
+                        "",
+                        "",
+                        c.getString(3),
+                        false,
+                        false
                     )
                 )
             }
         }
-        return jobs
+
+        return list
     }
+
 
 }
 data class EmployerSimple(val id: Long, val name: String)
