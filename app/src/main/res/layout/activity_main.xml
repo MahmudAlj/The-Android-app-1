@@ -95,10 +95,6 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/menuAddExpense"
-            style="@style/RoundedButton"
-            android:text="Add Expense" />
 
         <Button
             android:id="@+id/menuAddEmployer"

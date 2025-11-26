@@ -79,9 +79,7 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-        findViewById<Button>(R.id.menuAddExpense).setOnClickListener {
-            showExpenseDialog()
-        }
+
 
         dbHelper = DatabaseHelper(this)
         db = dbHelper.writableDatabase
@@ -91,7 +89,6 @@ class MainActivity : AppCompatActivity() {
         drawerLayout   = findViewById(R.id.drawerLayout)
         menuButton     = findViewById(R.id.menuButton)
         menuAddEmployer= findViewById(R.id.menuAddEmployer)
-        menuAddExpense  = findViewById(R.id.menuAddExpense)
         menuHistoryBtn = findViewById(R.id.menuHistory)
         menuCalendarBtn= findViewById(R.id.menuCalendar)
         menuIncompleteBtn = findViewById(R.id.menuIncomplete) // XML'de yoksa null olur, sorun değil
@@ -106,11 +103,7 @@ class MainActivity : AppCompatActivity() {
         menuHistoryBtn?.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
-        menuAddExpense.setOnClickListener {       // 🔹 yeni
-            showAddExpenseDialog()
-            drawerLayout.closeDrawer(GravityCompat.END)
-        }
-        menuCalendarBtn?.setOnClickListener {
+                menuCalendarBtn?.setOnClickListener {
             startActivity(Intent(this, CalendarActivity::class.java))
         }
         menuIncompleteBtn?.setOnClickListener {
@@ -168,41 +161,7 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
-    private fun showAddExpenseDialog() {
-        val builder = AlertDialog.Builder(this)
-            .setTitle("Add Expense")
 
-        val view = layoutInflater.inflate(R.layout.expense_dialog_layout, null)
-        val editAmount = view.findViewById<EditText>(R.id.editExpenseAmount)
-        val editDesc   = view.findViewById<EditText>(R.id.editExpenseDescription)
-        val editType   = view.findViewById<EditText>(R.id.editExpenseType)
-
-        builder.setView(view)
-
-        builder.setPositiveButton("Save") { dialog, _ ->
-            val amountText = editAmount.text.toString().replace(",", ".").trim()
-            val amount = amountText.toDoubleOrNull()
-            val desc = editDesc.text.toString().trim()
-            val type = editType.text.toString().trim()
-
-            if (amount == null) {
-                Toast.makeText(this, "Amount must be a number", Toast.LENGTH_SHORT).show()
-                return@setPositiveButton
-            }
-
-            val date = getCurrentDate()
-            dbHelper.addExpense(amount, desc, if (type.isEmpty()) null else type, date)
-
-            ActionLogger.log(this, "Expense added: $amount ₺, $desc")
-            updateTotalInDrawer()
-            Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
-
-            dialog.dismiss()
-        }
-
-        builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
-        builder.show()
-    }
     @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
