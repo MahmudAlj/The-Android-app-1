@@ -17,11 +17,14 @@
         android:paddingBottom="12dp">
 
         <Button
-            android:id="@+id/btnBack"
-            style="@style/RoundedButton"
-            android:background="@drawable/rounded_button_outline"
+            android:id="@+id/btnBackCalc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="← Geri"
-            android:textColor="@color/textPrimary" />
+            android:background="#7FFF00"
+            android:textColor="#FFFFFF"
+            android:padding="8dp"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/txtTitle"

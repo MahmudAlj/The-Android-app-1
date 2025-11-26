@@ -37,7 +37,7 @@ class CalendarActivity : AppCompatActivity() {
         listEmployers = findViewById(R.id.listEmployers)
         dbHelper = DatabaseHelper(this)
 
-        val btnBack: Button = findViewById(R.id.btnBack)
+        val btnBack: Button = findViewById(R.id.btnBackCalc)
         btnBack.setOnClickListener { finish() }
 
         decorateCalendar()

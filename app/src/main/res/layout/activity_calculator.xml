@@ -15,52 +15,150 @@
         android:padding="8dp"
         android:textStyle="bold"/>
 
+    <!-- DÜZELTİLMİŞ DISPLAY -->
     <TextView
         android:id="@+id/calculatorDisplay"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:textSize="40sp"
+        android:layout_height="wrap_content"
+        android:minHeight="120dp"
+        android:textSize="48sp"
         android:textColor="#FFFFFF"
-        android:gravity="end|center_vertical"
+        android:gravity="end"
         android:text="0"
-        android:padding="16dp"
+        android:padding="20dp"
         android:background="#000000" />
 
     <GridLayout
         android:id="@+id/buttonGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
         android:layout_marginTop="16dp"
         android:columnCount="4"
         android:rowCount="5">
 
         <!-- Satır 1 -->
-        <Button style="@style/CalcBtn" android:onClick="onClearClick" android:text="C" />
-        <Button style="@style/CalcBtn" android:onClick="onBackspaceClick" android:text="⌫" />
-        <Button style="@style/CalcBtn" android:onClick="onOperatorClick" android:text="%" />
-        <Button style="@style/CalcBtn" android:onClick="onOperatorClick" android:text="÷" />
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onClearClick"
+            android:text="C" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onBackspaceClick"
+            android:text="⌫" />
+
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onOperatorClick"
+            android:text="%" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onOperatorClick"
+            android:text="÷" />
 
         <!-- Satır 2 -->
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="7" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="8" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="9" />
-        <Button style="@style/CalcBtn" android:onClick="onOperatorClick" android:text="×" />
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="7" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="8" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="9" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onOperatorClick"
+            android:text="×" />
 
         <!-- Satır 3 -->
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="4" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="5" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="6" />
-        <Button style="@style/CalcBtn" android:onClick="onOperatorClick" android:text="-" />
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="4" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="5" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="6" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onOperatorClick"
+            android:text="-" />
 
         <!-- Satır 4 -->
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="1" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="2" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="3" />
-        <Button style="@style/CalcBtn" android:onClick="onOperatorClick" android:text="+" />
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="1" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="2" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="3" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onOperatorClick"
+            android:text="+" />
 
         <!-- Satır 5 -->
-        <Button style="@style/CalcBtn" android:layout_columnSpan="2" android:onClick="onDigitClick" android:text="0" />
-        <Button style="@style/CalcBtn" android:onClick="onDigitClick" android:text="." />
-        <Button style="@style/CalcBtn" android:onClick="onEqualClick" android:text="=" />
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="wrap_content"
+            android:layout_columnSpan="2"
+            android:onClick="onDigitClick"
+            android:text="0" />
+
+        <Button
+            style="@style/CalcButton"
+            android:layout_width="85dp"
+            android:onClick="onDigitClick"
+            android:text="." />
+
     </GridLayout>
+
+    <Button
+        style="@style/CalcButton"
+        android:layout_width="353dp"
+        android:layout_height="111dp"
+        android:onClick="onEqualClick"
+        android:rotationX="-3"
+        android:text="=" />
 </LinearLayout>
