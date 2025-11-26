@@ -21,7 +21,7 @@
             style="@style/RoundedButton"
             android:background="@drawable/rounded_button_outline"
             android:text="← Geri"
-            android:textColor="@color/colorPrimary" />
+            android:textColor="@color/textPrimary" />
 
         <TextView
             android:id="@+id/txtTitle"
