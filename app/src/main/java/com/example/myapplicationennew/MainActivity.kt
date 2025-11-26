@@ -206,34 +206,71 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
-        for (employer in employers.filter { !it.isDeleted }) {
-            val card = com.google.android.material.card.MaterialCardView(this).apply {
-                radius = 16f
-                cardElevation = 6f
-                setContentPadding(24, 24, 24, 24)
+
+        val activeEmployers = employers.filter { !it.isDeleted }
+
+        // 2’şerli gruplamak için index’leri dolaş
+        var index = 0
+        while (index < activeEmployers.size) {
+
+            // Yeni bir satır layout (horizontal)
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(16, 16, 16, 16) }
+                ).apply {
+                    setMargins(12, 12, 12, 12)
+                }
             }
 
-            val tv = TextView(this).apply {
-                val totalIncome = employer.jobs
-                    .filter { !it.isDeleted && it.isDone }
-                    .sumOf { it.moneyhowmuch }
-                text = "👤 ${employer.name}\n📅 ${employer.dateAdded}\n💰 Toplam: ₺$totalIncome"
-                textSize = 16f
-                setTextColor(getColor(android.R.color.black))
+            // 1. kart
+            val emp1 = activeEmployers[index]
+            row.addView(createEmployerCard(emp1))
+
+            // Eğer 2. kart varsa ekle
+            if (index + 1 < activeEmployers.size) {
+                val emp2 = activeEmployers[index + 1]
+                row.addView(createEmployerCard(emp2))
             }
 
-            card.addView(tv)
-            card.setOnClickListener { displayJobs(employer) }
-            card.setOnLongClickListener {
-                deleteEmployer(employer)
-                true
-            }
-            linearLayout.addView(card)
+            linearLayout.addView(row)
+            index += 2
         }
+    }
+    // 🔥 Kart oluşturan fonksiyon
+    private fun createEmployerCard(employer: Employer): View {
+        val card = com.google.android.material.card.MaterialCardView(this).apply {
+            radius = 16f
+            cardElevation = 6f
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            ).apply {
+                setMargins(8, 8, 8, 8)
+            }
+            setContentPadding(24, 24, 24, 24)
+        }
+
+        val totalIncome = employer.jobs
+            .filter { !it.isDeleted && it.isDone }
+            .sumOf { it.moneyhowmuch }
+
+        val tv = TextView(this).apply {
+            text = "👤 ${employer.name}\n📅 ${employer.dateAdded}\n💰 Toplam: ₺$totalIncome"
+            textSize = 16f
+            setTextColor(getColor(android.R.color.black))
+        }
+
+        card.addView(tv)
+        card.setOnClickListener { displayJobs(employer) }
+        card.setOnLongClickListener {
+            deleteEmployer(employer)
+            true
+        }
+
+        return card
     }
     private fun deleteEmployer(employer: Employer) {
         AlertDialog.Builder(this)
