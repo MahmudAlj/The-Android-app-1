@@ -343,6 +343,25 @@ class DatabaseHelper(context: Context) :
         return list
     }
 
+    fun updateJobInDatabase(
+        jobId: Long,
+        name: String,
+        moneyhowmuch: Double,
+        place: String,
+        description: String,
+        isDone: Int
+    ): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("name", name)
+            put("moneyhowmuch", moneyhowmuch)
+            put("place", place)
+            put("description", description)
+            put("isDone", isDone)
+        }
+        return db.update("Jobs", values, "id = ?", arrayOf(jobId.toString()))
+    }
+
 
 }
 data class EmployerSimple(val id: Long, val name: String)

@@ -24,6 +24,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 // iş silme uzun tutma
 // ıs veya ıs verende ayar dıye bır sey olsun onun otomatık onaylama yada sılme orda olsun
@@ -55,6 +56,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val fabAddJob = findViewById<FloatingActionButton>(R.id.fab_add_job)
+        fabAddJob.setOnClickListener {
+            val currentEmployer = null.also {
+                it?.let { it1 -> showJobInputDialog(it1) }
+            }
+        }
+
 
         val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNav)
 
@@ -157,7 +166,6 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
         builder.show()
     }
-
     @SuppressLint("SetTextI18n")
     private fun displayEmployers() {
         linearLayout.removeAllViews()
@@ -306,19 +314,29 @@ class MainActivity : AppCompatActivity() {
 
         linearLayout.removeAllViews()
 
-        val addJobBtn = Button(this).apply {
-            text = "➕ Yeni İş Ekle"
+        // ➕ FAB (sağ altta)
+        val addBtn = Button(this).apply {
+            text = "＋"
+            textSize = 30f
+            setPadding(20, 20, 20, 20)
+            setBackgroundResource(R.drawable.fab_circle)
             setOnClickListener { showJobInputDialog(employer) }
         }
-        linearLayout.addView(addJobBtn)
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            setMargins(0, 0, 32, 32)
+        }
+        addBtn.layoutParams = params
 
+        // Üst bar
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(12, 12, 12, 12)
         }
         val backBtn = Button(this).apply {
             text = "⬅ Geri"
-            setBackgroundResource(android.R.drawable.btn_default)
             setOnClickListener { displayEmployers() }
         }
         val title = TextView(this).apply {
@@ -330,21 +348,18 @@ class MainActivity : AppCompatActivity() {
         header.addView(title)
         linearLayout.addView(header)
 
-        // İş kartları
         val inflater = LayoutInflater.from(this)
 
         for (job in employer.jobs.filter { !it.isDeleted }) {
 
-            // XML'den kartı yükle
             val card = inflater.inflate(R.layout.job_item, linearLayout, false)
             val check = card.findViewById<CheckBox>(R.id.checkJob)
+            val moreBtn = card.findViewById<ImageButton>(R.id.moreButton)
 
             check.text =
-                        "🛠 İş: ${job.name}\n" +
-                        "💰 Ücret: ₺${job.moneyhowmuch}\n" +
-                        "📍 Mekan: ${job.place}\n" +
-                        "📝 Açıklama: ${job.description}\n" +
-                        "📅 Tarih: ${job.dateAdded}"
+                "🛠 ${job.name}\n" +
+                        "💰 ₺${job.moneyhowmuch}\n" +
+                        "📅 ${job.dateAdded}"
 
             check.isChecked = job.isDone
 
@@ -354,122 +369,109 @@ class MainActivity : AppCompatActivity() {
                 updateTotalInDrawer()
             }
 
-            // 🔥 Uzun basınca sil
-            card.setOnLongClickListener {
-                softDeleteJob(job, employer)
-                true
-            }
+            // 🔥 Üç nokta menü (Düzenle — Sil)
+            moreBtn.setOnClickListener {
+                val popup = android.widget.PopupMenu(this, moreBtn)
+                popup.menu.add("Düzenle")
+                popup.menu.add("Sil")
 
-            // 🔥 Kaydırma hareketi
-            var downX = 0f
-            var isSwiping = false
-
-            card.setOnTouchListener { v, event ->
-
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        downX = event.x
-                        isSwiping = false
+                popup.setOnMenuItemClickListener { item ->
+                    when (item.title) {
+                        "Düzenle" -> showEditJobDialog(employer, job)
+                        "Sil" -> softDeleteJob(job, employer)
                     }
-
-                    MotionEvent.ACTION_MOVE -> {
-                        val deltaX = event.x - downX
-
-                        if (Math.abs(deltaX) > 20) isSwiping = true
-
-                        if (isSwiping) {
-                            v.translationX = deltaX
-                        }
-                    }
-
-                    MotionEvent.ACTION_UP -> {
-                        val deltaX = event.x - downX
-
-                        when {
-                            deltaX > 150 -> {
-                                // sağ kaydırma → tamamlandı
-                                dbHelper.setJobDone(job.id.toInt(), true)
-                                job.isDone = true
-                                check.isChecked = true
-                                updateTotalInDrawer()
-                                Toast.makeText(this, "Tamamlandı ✓", Toast.LENGTH_SHORT).show()
-                            }
-                            deltaX < -150 -> {
-                                // sol kaydırma → tamamlanmadı
-                                dbHelper.setJobDone(job.id.toInt(), false)
-                                job.isDone = false
-                                check.isChecked = false
-                                updateTotalInDrawer()
-                                Toast.makeText(this, "Tamamlanmadı!", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-
-                        // kartı yerine döndür
-                        v.animate().translationX(0f).setDuration(150).start()
-                    }
+                    true
                 }
-                true
+                popup.show()
             }
+
+            // 🔥 Kaydırarak tamamla / geri al
+            card.setOnTouchListener(object : View.OnTouchListener {
+                var downX = 0f
+                override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                    event ?: return false
+
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            downX = event.x
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            val deltaX = event.x - downX
+                            if (deltaX > 150) {
+                                check.isChecked = true
+                                dbHelper.setJobDone(job.id.toInt(), true)
+                                updateTotalInDrawer()
+                                Toast.makeText(this@MainActivity, "Tamamlandı ✓", Toast.LENGTH_SHORT).show()
+                            }
+                            if (deltaX < -150) {
+                                check.isChecked = false
+                                dbHelper.setJobDone(job.id.toInt(), false)
+                                updateTotalInDrawer()
+                                Toast.makeText(this@MainActivity, "Tamamlanmadı!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                    return true
+                }
+            })
 
             linearLayout.addView(card)
         }
+
+        // ➕ buton en sona
+        linearLayout.addView(addBtn)
     }
+
     // İŞ DÜZENLEME DİYALOĞU
     private fun showEditJobDialog(employer: Employer, job: Job) {
-        val builder = AlertDialog.Builder(this)
-            .setTitle("İşi Düzenle")
 
-        val inputLayout = layoutInflater.inflate(R.layout.input_dialog_layout, null)
-        val editTextJob = inputLayout.findViewById<EditText>(R.id.textnameWork)
-        val editTextMoney = inputLayout.findViewById<EditText>(R.id.TextMoney)
-        val editTextDescription = inputLayout.findViewById<EditText>(R.id.TextDescription)
-        val editTextPlace = inputLayout.findViewById<EditText>(R.id.TextPlace)
+        val builder = AlertDialog.Builder(this).setTitle("İşi Düzenle")
 
-        editTextJob.setText(job.name)
-        editTextMoney.setText(job.moneyhowmuch.toString())
-        editTextDescription.setText(job.description)
-        editTextPlace.setText(job.place)
+        val layout = layoutInflater.inflate(R.layout.input_dialog_layout, null)
 
-        builder.setView(inputLayout)
+        val nameTxt = layout.findViewById<EditText>(R.id.textnameWork)
+        val moneyTxt = layout.findViewById<EditText>(R.id.TextMoney)
+        val placeTxt = layout.findViewById<EditText>(R.id.TextPlace)
+        val descTxt = layout.findViewById<EditText>(R.id.TextDescription)
+        val expTxt = layout.findViewById<EditText>(R.id.ExpenseAmount)
+        val dailyChk = layout.findViewById<CheckBox>(R.id.checkDaily)
 
-        builder.setPositiveButton("Save") { dialog, _ ->
-            val newName = editTextJob.text.toString().trim()
-            val newMoney = editTextMoney.text.toString().replace(",", ".").toDoubleOrNull()
-            val newDesc = editTextDescription.text.toString().trim()
-            val newPlace = editTextPlace.text.toString().trim()
+        nameTxt.setText(job.name)
+        placeTxt.setText(job.place)
+        descTxt.setText(job.description)
+        dailyChk.isChecked = job.isDone
 
-            if (newName.isEmpty()) {
-                Toast.makeText(this, "Name can't be empty", Toast.LENGTH_SHORT).show()
-                return@setPositiveButton
-            }
-            if (newMoney == null) {
-                Toast.makeText(this, "Money must be a number", Toast.LENGTH_SHORT).show()
-                return@setPositiveButton
-            }
+        if (job.moneyhowmuch < 0)
+            expTxt.setText((-job.moneyhowmuch).toString())
+        else
+            moneyTxt.setText(job.moneyhowmuch.toString())
 
-            val rows = updateJobInDatabase(job.id, newName, newMoney, newPlace, newDesc)
-            if (rows > 0) {
-                val updated = job.copy(
-                    name = newName,
-                    moneyhowmuch = newMoney,
-                    description = newDesc,
-                    place = newPlace
-                )
-                val index = employer.jobs.indexOfFirst { it.id == job.id }
-                if (index >= 0) employer.jobs[index] = updated
+        builder.setView(layout)
 
-                updateTotalInDrawer()
-                displayJobs(employer)
-                Toast.makeText(this, "Job updated", Toast.LENGTH_SHORT).show()
-                ActionLogger.log(this, "İş güncellendi: ${job.name} → $newName (${employer.name})")
-            } else {
-                Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show()
-            }
-            dialog.dismiss()
+        builder.setPositiveButton("Kaydet") { d, _ ->
+
+            val name = nameTxt.text.toString().trim()
+            val amount = moneyTxt.text.toString().toDoubleOrNull() ?: 0.0
+            var expense = expTxt.text.toString().toDoubleOrNull() ?: 0.0
+
+            if (expense > 0) expense = -expense
+
+            val finalAmount = amount + expense
+
+            updateJobInDatabase(job.id, name, finalAmount, placeTxt.text.toString(), descTxt.text.toString(), if (dailyChk.isChecked) 1 else 0)
+
+            refreshEmployerJobs(employer)
+            displayJobs(employer)
+            updateTotalInDrawer()
+
+            Toast.makeText(this, "İş güncellendi", Toast.LENGTH_SHORT).show()
         }
-        builder.setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+
+        builder.setNegativeButton("İptal", null)
         builder.show()
     }
+
+
     // İŞİ SOFT DELETE
     private fun softDeleteJob(job: Job, employer: Employer) {
         AlertDialog.Builder(this)
@@ -562,14 +564,23 @@ class MainActivity : AppCompatActivity() {
         db.insert("Jobs", null, values)
         updateTotalInDrawer()
     }
-    private fun updateJobInDatabase(jobId: Long, name: String, moneyhowmuch: Double, place: String, description: String): Int {
+    private fun updateJobInDatabase(jobId: Long, name: String, amount: Double, place: String, desc: String, isDone: Int) {
+        val db = dbHelper.writableDatabase
+
         val values = ContentValues().apply {
-            put("name", name)
-            put("moneyhowmuch", moneyhowmuch)
-            put("place", place)
-            put("description", description)
+            put(DatabaseHelper.JOB_NAME, name)
+            put(DatabaseHelper.JOB_AMOUNT, amount)
+            put(DatabaseHelper.JOB_PLACE, place)
+            put(DatabaseHelper.JOB_DESC, desc)
+            put(DatabaseHelper.JOB_IS_DONE, isDone)
         }
-        return db.update("Jobs", values, "id = ?", arrayOf(jobId.toString()))
+
+        db.update(
+            DatabaseHelper.TBL_JOBS,
+            values,
+            "${DatabaseHelper.JOB_ID} = ?",
+            arrayOf(jobId.toString())
+        )
     }
     // SOFT DELETE: Jobs -> isDeleted=1
     private fun softDeleteJobInDatabase(jobId: Long): Int {
@@ -753,10 +764,10 @@ data class Employer(
 data class Job(
     val id: Long,
     val employerId: Long,
-    val name: String,
-    val moneyhowmuch: Double,
-    val place: String,
-    val description: String,
+    var name: String,
+    var moneyhowmuch: Double,
+    var place: String,
+    var description: String,
     val dateAdded: String,
     var isDone: Boolean = false,
     var isDeleted: Boolean = false,

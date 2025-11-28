@@ -30,12 +30,12 @@
 
     <GridLayout
         android:id="@+id/buttonGrid"
-        android:layout_width="match_parent"
+        android:layout_width="492dp"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
         android:layout_marginTop="16dp"
         android:columnCount="4"
-        android:rowCount="5">
+        android:rowCount="5"
+        android:textColor="#FFFFFF">
 
         <!-- Satır 1 -->
         <Button
@@ -156,8 +156,8 @@
 
     <Button
         style="@style/CalcButton"
-        android:layout_width="353dp"
-        android:layout_height="111dp"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
         android:onClick="onEqualClick"
         android:rotationX="-3"
         android:text="=" />
